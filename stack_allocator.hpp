@@ -73,7 +73,7 @@ namespace alloc
 			_cur = _start;
 		}
 
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return block.ptr >= _start && block.ptr + block.size <= _end;
 		}

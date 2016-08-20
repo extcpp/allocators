@@ -78,7 +78,7 @@ namespace alloc
 			}
 		}
 
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return reinterpret_cast<char*>(block.ptr) >= _memory.ptr
 				&& reinterpret_cast<char*>(block.ptr) + block.size <= reinterpret_cast<char*>(_memory.ptr) + _memory.size;

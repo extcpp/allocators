@@ -27,7 +27,7 @@ namespace alloc
 				FallbackAllocator::deallocate(block);
 		}
 
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return PrimaryAllocator::owns(block) || FallAllocator::owns(block);
 		}

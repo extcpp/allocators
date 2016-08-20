@@ -53,7 +53,7 @@ namespace alloc
 			boost::alignment::aligned_free(block.ptr);
 		}
 
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return ParentAllocator::owns(block);
 		}

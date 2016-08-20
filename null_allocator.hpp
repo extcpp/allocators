@@ -60,7 +60,7 @@ namespace alloc
 		/**
 			\note This function is a requirement.
 		*/
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return block.ptr == nullptr;
 		}

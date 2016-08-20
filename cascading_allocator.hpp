@@ -21,7 +21,7 @@ namespace alloc
 			assert(block.ptr == nullptr);
 		}
 
-		bool owns(memblock block)
+		bool owns(memblock block) const
 		{
 			return block.ptr == nullptr;
 		}
