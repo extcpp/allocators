@@ -19,7 +19,6 @@ namespace alloc
 		static constexpr std::size_t chunk_size = ChunkSize;
 		static constexpr std::size_t num_chunks = NumChunks;
 		static constexpr std::size_t memory_alignment = Alignment;
-		static constexpr std::size_t small_chunk_size = SmallChunkSize;
 		static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / 64) + 1;
 
 		bitmap_allocator() : _memory{nullptr, 0}
@@ -43,26 +42,27 @@ namespace alloc
 			if(!_memory.ptr)
 				init();
 
-			if(0 < size && size * count <= std::numeric_limits<std::uint64_t>::digits() * chunk_size && _memory.ptr)
+			if(0 < size && size * count <= std::numeric_limits<std::uint64_t>::digits * chunk_size && _memory.ptr)
 			{
 				std::size_t sub_length = pattern_length(size);
 				std::size_t length = sub_length * count;
-				std::size_t max_pos = free_blocks_size * 64 - length;
+				std::size_t max_pos = num_chunks - length;
 				std::uint64_t pat = pattern(length);
 
 				std::size_t pos = 0;
-				while(pos < max_pos && check_position(pos, pat))
+				while(check_position(pos, length) == false && pos < max_pos)
 					++pos;
 
 				if(pos < max_pos)
 				{
 					auto shift = pattern_shift(pos);
 					auto index = free_blocks_index(pos);
-					_free_blocks[index]     &= ~(pat <<       shift );
-					_free_blocks[index + 1] &= ~(pat >> (64 - shift));
+					_free_blocks[index] &= ~(pat << shift);
+					if((shift & 63) + length > 64)
+						_free_blocks[index + 1] &= ~(pat >> (64 - shift));
 
 					for(std::size_t i=0; i<count; ++i)
-						*out_itr++ = memblock{_memory + pos * chunk_size + i * sub_length * chunk_size, sub_length * chunk_size};
+						*out_itr++ = memblock{reinterpret_cast<char*>(_memory.ptr) + pos * chunk_size + i * sub_length * chunk_size, sub_length * chunk_size};
 				}
 			}
 
@@ -73,14 +73,15 @@ namespace alloc
 		{
 			if(owns(block))
 			{
-				std::size_t pos = (block.ptr - _memory.ptr) / chunk_size;
+				std::size_t pos = (reinterpret_cast<char*>(block.ptr) - reinterpret_cast<char*>(_memory.ptr)) / chunk_size;
 				_free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
 			}
 		}
 
 		bool owns(memblock block)
 		{
-			return block.ptr >= _memory.ptr && block.ptr + block.size <= _memory.ptr + _memory.size;
+			return reinterpret_cast<char*>(block.ptr) >= _memory.ptr
+				&& reinterpret_cast<char*>(block.ptr) + block.size <= reinterpret_cast<char*>(_memory.ptr) + _memory.size;
 		}
 
 	private:
@@ -88,26 +89,29 @@ namespace alloc
 		{
 			_memory = ParentAllocator::allocate(chunk_size * num_chunks, memory_alignment);
 			std::fill(_free_blocks, _free_blocks + free_blocks_size, ~std::uint64_t{0});
-			_free_blocks[free_blocks_size] = 0; // sentinel (note: free_blocks_size is 1 less the actual array)
 		}
 
-		bool check_position(std::size_t pos, std::uint64_t pattern) const
+		bool check_position(std::size_t pos, std::size_t length) const
 		{
 			std::size_t index = free_blocks_index(pos);
 			std::size_t shift = pattern_shift(pos);
+			std::uint64_t pat = pattern(length);
 
-			return (_free_blocks[index]     & (pattern <<       shift) ) == (pattern <<       shift )
-			    && (_free_blocks[index + 1] & (pattern >> (64 - shift))) == (pattern >> (64 - shift));
+			bool out =  (_free_blocks[index]     & (pat <<       shift) ) == (pat <<       shift );
+			if((shift & 63) + length > 64)
+			    out = out && (_free_blocks[index + 1] & (pat >> (64 - shift))) == (pat >> (64 - shift));
+
+			return out;
 		}
 
 		static std::size_t pattern_length(std::size_t memory_size)
 		{
-			return (size - 1) / chunk_size + 1;
+			return (memory_size - 1) / chunk_size + 1;
 		}
 
 		static std::size_t pattern(std::size_t length)
 		{
-			return (std::uint64_t{1} << (length + 1)) - 1;
+			return (std::uint64_t{1} << length) - 1;
 		}
 
 		static std::size_t pattern_shift(std::size_t chunk_index)
@@ -122,7 +126,7 @@ namespace alloc
 
 	private:
 		memblock _memory;
-		std::uint64_t _free_blocks[free_blocks_size + 1]; // +1 for simpler check_position function
+		std::uint64_t _free_blocks[free_blocks_size];
 	};
 }
 

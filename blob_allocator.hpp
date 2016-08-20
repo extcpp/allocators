@@ -14,7 +14,7 @@ namespace alloc
 	public:
 		static constexpr std::size_t memory_size = MemorySize;
 
-		blob_allocator() : allocated{false}
+		blob_allocator() : _allocated{false}
 		{ }
 
 		memblock allocate(std::size_t size, std::size_t alignment)
@@ -30,13 +30,13 @@ namespace alloc
 		{
 			memblock out{nullptr, 0};
 
-			if(!allocated)
+			if(!_allocated)
 			{
-				auto* ptr = boost::alignment::align_up(alignment, _data)
-				if(ptr < _data + Size)
+				char* ptr = reinterpret_cast<char*>(boost::alignment::align_up(_data, alignment));
+				if(ptr < _data + memory_size)
 				{
-					out = {ptr, _data + Size - ptr};
-					allocated = true;
+					out = {ptr, static_cast<memblock::size_t>((_data + memory_size) - ptr)};
+					_allocated = true;
 				}
 			}
 
@@ -46,22 +46,22 @@ namespace alloc
 		void deallocate(memblock block)
 		{
 			if(owns(block))
-				allocated = false;
+				_allocated = false;
 		}
 
 		void deallocate_all()
 		{
-			allocated = false;
+			_allocated = false;
 		}
 
 		bool owns(memblock block)
 		{
-			return block.ptr >= data && block.ptr + block.size <= data + MemorySize;
+			return block.ptr >= _data && reinterpret_cast<char*>(block.ptr) + block.size <= _data + memory_size;
 		}
 
 	private:
-		char data[MemorySize];
-		bool allocated;
+		char _data[memory_size];
+		bool _allocated;
 	};
 }
 

@@ -7,6 +7,9 @@ namespace alloc
 {
 	struct memblock
 	{
+		using pointer = void*;
+		using size_t = std::size_t;
+
 		void* ptr;
 		std::size_t size;
 	};
