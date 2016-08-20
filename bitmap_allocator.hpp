@@ -71,11 +71,9 @@ namespace alloc
 
 		void deallocate(memblock block)
 		{
-			if(owns(block))
-			{
-				std::size_t pos = (reinterpret_cast<char*>(block.ptr) - reinterpret_cast<char*>(_memory.ptr)) / chunk_size;
-				_free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
-			}
+			assert(owns(block));
+			std::size_t pos = (reinterpret_cast<char*>(block.ptr) - reinterpret_cast<char*>(_memory.ptr)) / chunk_size;
+			_free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
 		}
 
 		bool owns(memblock block) const
