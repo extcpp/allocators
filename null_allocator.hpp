@@ -41,9 +41,9 @@ namespace alloc
 
 		/// deallocates the memory denoted by the given memblock
 		/**
-			\note The given memblock object must previously be obtained by allocate().
-			      Passing in a memblock object, which was not previously obtained by
-			      allocate() or allocate_all() leads to undefined behavior.
+			\note The given memblock object must previously be obtained by an allocate function of *this.
+			      Passing in a memblock object, which was not previously obtained by an allocate function
+			      of *this leads to undefined behavior.
 
 			\note This function is a requirement.
 		*/
