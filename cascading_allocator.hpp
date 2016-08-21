@@ -4,30 +4,66 @@
 #include <cassert>
 #include <cstddef>
 #include "memblock.hpp"
+#include "allocator_wrapper.hpp"
 
 namespace alloc
 {
-	template<typename ParentAllocator, typename BaseAllocator>
+	/// creates ChildAllocator objects in the memory pool of ParentAllocator as needed
+	template<typename ParentAllocator, typename ChildAllocator>
 	class cascading_allocator : ParentAllocator
 	{
 	public:
+		using parent_allocator_t = ParentAllocator;
+		using child_allocator_t = ChildAllocator;
+
+		cascading_allocator()
+			: _chunks{allocator_wrapper<child_allocator_t, parent_allocator_t>{this}}
+		{ }
+
 		memblock allocate(std::size_t size, std::size_t alignment)
 		{
-			return ;
+			memblock block{nullptr, 0};
+
+			for(auto itr=_chunks.begin(); itr!=_chunks.end(); ++itr)
+			{
+				block = itr->allocate(size, alignment);
+				if(block.ptr)
+					return block;
+			}
+
+			try
+			{
+				_chunks.emplace_back();
+				block = _chunks.back().allocate(size, alignment);
+			}
+			catch(std::bad_alloc&)
+			{ }
+
+			return block;
 		}
 
 		void deallocate(memblock block)
 		{
-			assert(block.ptr == nullptr);
+			auto itr = find(block);
+			assert(itr != _chunks.end());
+			itr->deallocate(block);
 		}
 
 		bool owns(memblock block) const
 		{
-			return block.ptr == nullptr;
+			return find(block) != _chunks.end();
 		}
 
 	private:
-		std::unordered_map<char*, memblock> _chunks;
+		auto find(memblock block) const
+		{
+			return std::find_if(_chunks.begin(), _chunks.end(), [&](auto& a){
+				return a->owns(block);
+			});
+		}
+
+	private:
+		std::vector<child_allocator_t, allocator_wrapper<child_allocator_t, parent_allocator_t>> _chunks;
 	}
 }
 
