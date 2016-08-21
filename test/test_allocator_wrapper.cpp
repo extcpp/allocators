@@ -95,8 +95,8 @@ BOOST_AUTO_TEST_CASE(test_functions)
 
 BOOST_AUTO_TEST_CASE(test_std_functionality)
 {
-	alloc::blob_allocator<64> a;
-	alloc::allocator_wrapper<int, alloc::blob_allocator<64>> w(&a);
+	alloc::blob_allocator<64, 8> a;
+	alloc::allocator_wrapper<int, alloc::blob_allocator<64, 8>> w(&a);
 
 	auto* ptr = w.allocate(1);
 
@@ -114,7 +114,7 @@ BOOST_AUTO_TEST_CASE(test_std_functionality)
 
 BOOST_AUTO_TEST_CASE(test_vector_allocator)
 {
-	using A = alloc::bitmap_allocator<alloc::blob_allocator<128>, 4, 32, 4>;
+	using A = alloc::bitmap_allocator<alloc::blob_allocator<128, 8>, 4, 32, 4>;
 	using W = alloc::allocator_wrapper<int, A>;
 
 	A a;

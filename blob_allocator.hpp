@@ -8,11 +8,12 @@
 
 namespace alloc
 {
-	template<std::size_t MemorySize>
-	class blob_allocator
+	template<std::size_t MemorySize, std::size_t Alignment>
+	class alignas(Alignment) blob_allocator
 	{
 	public:
 		static constexpr std::size_t memory_size = MemorySize;
+		static constexpr std::size_t memory_alignment = Alignment;
 
 		blob_allocator() : _allocated{false}
 		{ }
