@@ -38,6 +38,35 @@ namespace alloc
 	{
 		return !(lhs == rhs);
 	}
+
+
+	template<typename Allocator>
+	struct memblock_deleter
+	{
+		using allocator_t = Allocator;
+
+		template<typename Type>
+		void operator() (Type* ptr) const
+		{
+			if(ptr)
+			{
+				ptr->~Type();
+				allocator->deallocate(memblock{ptr, size});
+			}
+		}
+
+		allocator_t* allocator;
+		memblock::size_t size;
+	};
+
+	template<typename Type, typename Allocator, typename... Args>
+	std::unique_ptr<Type, memblock_deleter<Allocator>>
+	make_unique(Allocator& a, std::size_t alignment, Args... args)
+	{
+		auto block = a->allocate(sizeof(Type), alignment);
+		return {new (block.ptr) Type{args...}, {&a, block.size} };
+	}
+
 } // namespace alloc
 
 #endif
