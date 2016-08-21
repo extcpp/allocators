@@ -9,6 +9,9 @@
 
 namespace alloc
 {
+	// TODO: finish this allocator
+	#error unfinished
+
 	template<typename ParentAllocator, std::size_t ChunkSize, std::size_t MinSize, std::size_t MaxSize, std::size_t MaxElements>
 	class free_list_allocator : ParentAllocator
 	{
@@ -25,7 +28,7 @@ namespace alloc
 
 		static constexpr actual_size(std::size_t size)
 		{
-			return ((size / ChunkSize) + 1) * ChunkSize;
+			return ((size - 1) / ChunkSize + 1) * ChunkSize;
 		}
 
 		memblock allocate(std::size_t size, std::size_t alignment)
@@ -59,7 +62,7 @@ namespace alloc
 		}
 
 	private:
-		char* _head;
+		free_block* _head;
 	};
 } // namespace alloc
 
