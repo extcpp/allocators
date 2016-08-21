@@ -65,20 +65,26 @@ namespace alloc
 		}
 
 		template <typename T_, typename U, typename Allocator_>
-		friend bool operator==(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs)
-		{
-			return lhs._allocator == rhs._allocator;
-		}
+		friend bool operator==(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs);
 
-		template <typename T_, typename U, typename Allocator_>
-		friend bool operator!=(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs)
-		{
-			return !(lhs == rhs);
-		}
+		template<typename T_, typename U, typename Allocator_>
+		friend bool operator!=(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs);
 
 	private:
 		Allocator* _allocator;
 	};
+
+	template <typename T_, typename U, typename Allocator_>
+	bool operator==(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs)
+	{
+		return lhs._allocator == rhs._allocator;
+	}
+
+	template <typename T_, typename U, typename Allocator_>
+	bool operator!=(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wrapper<U, Allocator_>& rhs)
+	{
+		return !(lhs == rhs);
+	}
 } // namepsace alloc
 
 #endif
