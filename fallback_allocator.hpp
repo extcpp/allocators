@@ -10,11 +10,11 @@ namespace alloc
 	class fallback_allocator : PrimaryAllocator, FallbackAllocator
 	{
 	public:
-		memblock allocate(std::size_t size)
+		memblock allocate(std::size_t size, size_t alignment)
 		{
-			auto block = PrimaryAllocator::allocate(size);
+			auto block = PrimaryAllocator::allocate(size, alignment);
 			if(!block.ptr)
-				block = FallbackAllocator::allocate(size);
+				block = FallbackAllocator::allocate(size, alignment);
 
 			return block;
 		}
@@ -29,7 +29,7 @@ namespace alloc
 
 		bool owns(memblock block) const
 		{
-			return PrimaryAllocator::owns(block) || FallAllocator::owns(block);
+			return PrimaryAllocator::owns(block) || FallbackAllocator::owns(block);
 		}
 	};
 
