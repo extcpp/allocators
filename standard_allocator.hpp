@@ -11,6 +11,11 @@ namespace alloc
 	class standard_allocator
 	{
 	public:
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t) noexcept
+		{
+			return size;
+		}
+
 		memblock allocate(std::size_t size, std::size_t alignment)
 		{
 			auto* ptr = boost::alignment::aligned_alloc(alignment, size);

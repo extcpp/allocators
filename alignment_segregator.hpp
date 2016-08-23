@@ -14,6 +14,14 @@ namespace alloc
 
 		static constexpr std::size_t dividing_alignment = AlignmentLessOrEqual;
 
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment)
+		{
+			if(alignment <= dividing_alignment)
+				return FirstAllocator::actual_size(size, alignment);
+			else
+				return SecondAllocator::actual_size(size, alignment);
+		}
+
 		/// allocates memory of given size and alignment
 		/**
 			\return Returns memblock on success, which denotes the memory and size of the allocation,

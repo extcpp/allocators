@@ -10,6 +10,14 @@ namespace alloc
 	class fallback_allocator : PrimaryAllocator, FallbackAllocator
 	{
 	public:
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment)
+		{
+			return
+				FirstAllocator::actual_size(size, alignment) == SecondAllocator::actual_size(size, alignment)
+				? FirstAllocator::actual_size(size, alignment)
+				: std::numeric_limits<std::size_t>::max();
+		}
+
 		memblock allocate(std::size_t size, size_t alignment)
 		{
 			auto block = PrimaryAllocator::allocate(size, alignment);

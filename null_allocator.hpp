@@ -9,6 +9,15 @@ namespace alloc
 {
 	struct null_allocator
 	{
+		/// returns the actual size for the requested size and alignment
+		/**
+			\note If the size cannot be determined at compile time, the returned size is std::numeric_limits<std::size_t>::max()
+		*/
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment)
+		{
+			return 0;
+		}
+
 		/// allocates memory of given size and alignment
 		/**
 			\return Returns memblock on success, which denotes the memory and size of the allocation,

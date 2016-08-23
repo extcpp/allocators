@@ -16,6 +16,11 @@ namespace alloc
 		using parent_allocator_t = ParentAllocator;
 		using child_allocator_t = ChildAllocator;
 
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment)
+		{
+			return ChildAllocator::actual_size(size, alignment);
+		}
+
 		cascading_allocator()
 			: _chunks{allocator_wrapper<child_allocator_t, parent_allocator_t>{this}}
 		{ }

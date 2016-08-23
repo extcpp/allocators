@@ -21,6 +21,11 @@ namespace alloc
 		static constexpr std::size_t memory_alignment = Alignment;
 		static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / 64) + 1;
 
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept
+		{
+			return alignment <= memory_alignment ? pattern_length(size) + chunk_size : 0;
+		}
+
 		bitmap_allocator() : _memory{nullptr, 0}
 		{ }
 

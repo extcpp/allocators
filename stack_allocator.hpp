@@ -20,6 +20,11 @@ namespace alloc
 		static constexpr std::size_t memory_size = MemorySize;
 		static constexpr std::sizt_t memory_alignment = Alignment;
 
+		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept
+		{
+			return alignment <= memory_alignment ? ((size - 1) / memory_alignment + 1) * memory_alignment : 0;
+		}
+
 		stack_allocator() : _start{nullptr}, _cur{nullptr}, _end{nullptr}
 		{ }
 
