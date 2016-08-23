@@ -6,8 +6,32 @@
 
 namespace alloc
 {
+	namespace _detail_size_segregator
+	{
+		template<typename Derived, typename FirstAllocator, typename SecondAllocator, std::size_t SizeLessOrEqual, typename = void>
+		struct extension_allocate_array
+		{ };
+
+		template<typename Derived, typename FirstAllocator, typename SecondAllocator, std::size_t SizeLessOrEqual>
+		struct extension_allocate_array<Derived, FirstAllocator, SecondAllocator,
+			std::enable_if_t<allocator_traits<FirstAllocator>::has_allocate_array && allocator_traits<SecondAllocator>::has_allocate_array>>
+		{
+			OutItr allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
+			{
+				auto* parent = static_cast<Derived*>(this);
+				if(size <= SizeLessOrEqual)
+					return static_cast<FirstAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+				else
+					return static_cast<SecondAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+			}
+		};
+	} // namespace _detail_size_segregator
+
 	template<typename FirstAllocator, typename SecondAllocator, std::size_t SizeLessOrEqual>
-	struct size_segregator : private FirstAllocator, private SecondAllocator
+	struct size_segregator :
+		public _detail_size_segregator::extension_allocate_array<size_segregator, FirstAllocator, SecondAllocator, SizeLessOrEqual>,
+		private FirstAllocator,
+		private SecondAllocator
 	{
 		using first_allocator = FirstAllocator;
 		using second_allocator = SecondAllocator;
