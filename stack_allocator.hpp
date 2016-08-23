@@ -43,7 +43,7 @@ namespace alloc
 			// refuses alignments greater than memory_alignment
 			if(_cur && alignment <= memory_alignment)
 			{
-				size = boost::alignment::align_up(_cur + size, memory_alignment) - _cur;
+				size = static_cast<std::size_t>(boost::alignment::align_up(_cur + size, memory_alignment) - _cur);
 				out = {_cur, size};
 				_cur += size;
 			}

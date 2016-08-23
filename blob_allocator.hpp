@@ -20,10 +20,10 @@ namespace alloc
 			return size <= memory_size && alignment <= memory_alignment ? size : 0;
 		}
 
-		blob_allocator() : _allocated{false}
+		blob_allocator() noexcept : _allocated{false}
 		{ }
 
-		memblock allocate(std::size_t size, std::size_t alignment)
+		memblock allocate(std::size_t size, std::size_t alignment) noexcept
 		{
 			memblock out{nullptr, 0};
 			if(size <= memory_size)
@@ -32,35 +32,31 @@ namespace alloc
 			return out;
 		}
 
-		memblock allocate_all(std::size_t alignment)
+		memblock allocate_all(std::size_t alignment) noexcept
 		{
 			memblock out{nullptr, 0};
 
-			if(!_allocated)
+			if(!_allocated && alignment <= memory_alignment)
 			{
-				char* ptr = reinterpret_cast<char*>(boost::alignment::align_up(_data, alignment));
-				if(ptr < _data + memory_size)
-				{
-					out = {ptr, static_cast<memblock::size_t>((_data + memory_size) - ptr)};
-					_allocated = true;
-				}
+				out = {_data, memory_size};
+				_allocated = true;
 			}
 
 			return out;
 		}
 
-		void deallocate(memblock block)
+		void deallocate(memblock block) noexcept
 		{
-			if(owns(block))
-				_allocated = false;
+			assert(owns(block));
+			_allocated = false;
 		}
 
-		void deallocate_all()
+		void deallocate_all() noexcept
 		{
 			_allocated = false;
 		}
 
-		bool owns(memblock block) const
+		bool owns(memblock block) const noexcept
 		{
 			return block.ptr >= _data && reinterpret_cast<char*>(block.ptr) + block.size <= _data + memory_size;
 		}

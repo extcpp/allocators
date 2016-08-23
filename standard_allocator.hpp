@@ -37,7 +37,7 @@ namespace alloc
 		/**
 			\note This function always returns true
 		*/
-		bool owns(memblock) const
+		bool owns(memblock) const noexcept
 		{
 			return true;
 		}
