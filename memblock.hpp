@@ -41,6 +41,24 @@ namespace alloc
 
 
 	template<typename Allocator>
+	struct static_size_memblock_deleter
+	{
+		using allocator_t = Allocator;
+
+		template<typename Type>
+		void operator() (Type* ptr) const
+		{
+			if(ptr)
+			{
+				ptr->~Type();
+				allocator->deallocate(memblock{ptr, sizeof(Type)});
+			}
+		}
+
+		allocator_t* allocator;
+	};
+
+	template<typename Allocator>
 	struct memblock_deleter
 	{
 		using allocator_t = Allocator;
@@ -58,6 +76,7 @@ namespace alloc
 		allocator_t* allocator;
 		memblock::size_t size;
 	};
+
 
 	template<typename Type, typename Allocator, typename... Args>
 	std::unique_ptr<Type, memblock_deleter<Allocator>>
