@@ -26,7 +26,7 @@ namespace alloc
 			return alignment <= memory_alignment ? pattern_length(size) + chunk_size : 0;
 		}
 
-		bitmap_allocator() : _memory{nullptr, 0}
+		bitmap_allocator() noexcept : _memory{nullptr, 0}
 		{ }
 
 		~bitmap_allocator()
@@ -47,7 +47,7 @@ namespace alloc
 			if(!_memory.ptr)
 				init();
 
-			if(0 < size && size * count <= std::numeric_limits<std::uint64_t>::digits * chunk_size && _memory.ptr)
+			if(pattern_length(size) <= 128 && size * count <= num_chunks * chunk_size && 0 < size && _memory.ptr)
 			{
 				std::size_t sub_length = pattern_length(size);
 				std::size_t length = sub_length * count;
@@ -55,10 +55,10 @@ namespace alloc
 				std::uint64_t pat = pattern(length);
 
 				std::size_t pos = 0;
-				while(check_position(pos, length) == false && pos < max_pos)
+				while(check_position(pos, length, alignment) == false && pos <= max_pos)
 					++pos;
 
-				if(pos < max_pos)
+				if(pos <= max_pos)
 				{
 					auto shift = pattern_shift(pos);
 					auto index = free_blocks_index(pos);
@@ -74,14 +74,14 @@ namespace alloc
 			return out_itr;
 		}
 
-		void deallocate(memblock block)
+		void deallocate(memblock block) noexcept
 		{
 			assert(owns(block));
 			std::size_t pos = (reinterpret_cast<char*>(block.ptr) - reinterpret_cast<char*>(_memory.ptr)) / chunk_size;
 			_free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
 		}
 
-		bool owns(memblock block) const
+		bool owns(memblock block) const noexcept
 		{
 			return reinterpret_cast<char*>(block.ptr) >= _memory.ptr
 				&& reinterpret_cast<char*>(block.ptr) + block.size <= reinterpret_cast<char*>(_memory.ptr) + _memory.size;
@@ -91,38 +91,48 @@ namespace alloc
 		void init()
 		{
 			_memory = ParentAllocator::allocate(chunk_size * num_chunks, memory_alignment);
-			std::fill(_free_blocks, _free_blocks + free_blocks_size, ~std::uint64_t{0});
+			std::fill(_free_blocks, _free_blocks + free_blocks_size - 1, ~std::uint64_t{0});
+
+			auto remaining = num_chunks - 64 * (free_blocks_size - 1);
+			if(remaining < 64)
+				_free_blocks[free_blocks_size - 1] = pattern(remaining);
+			else
+				_free_blocks[free_blocks_size - 1] = ~std::uint64_t{0};
 		}
 
-		bool check_position(std::size_t pos, std::size_t length) const
+		bool check_position(std::size_t pos, std::size_t length, std::size_t alignment) const noexcept
 		{
+			// check alignment of position
+			if( ((reinterpret_cast<intptr_t>(_memory.ptr) + pos * chunk_size) & (alignment - 1)) != 0 )
+				return false;
+
 			std::size_t index = free_blocks_index(pos);
 			std::size_t shift = pattern_shift(pos);
 			std::uint64_t pat = pattern(length);
 
-			bool out =  (_free_blocks[index]     & (pat <<       shift) ) == (pat <<       shift );
+			bool out =  (_free_blocks[index] & (pat << shift)) == (pat << shift);
 			if((shift & 63) + length > 64)
 			    out = out && (_free_blocks[index + 1] & (pat >> (64 - shift))) == (pat >> (64 - shift));
 
 			return out;
 		}
 
-		static std::size_t pattern_length(std::size_t memory_size)
+		static constexpr std::size_t pattern_length(std::size_t memory_size) noexcept
 		{
 			return (memory_size - 1) / chunk_size + 1;
 		}
 
-		static std::size_t pattern(std::size_t length)
+		static constexpr std::size_t pattern(std::size_t length) noexcept
 		{
 			return (std::uint64_t{1} << length) - 1;
 		}
 
-		static std::size_t pattern_shift(std::size_t chunk_index)
+		static constexpr std::size_t pattern_shift(std::size_t chunk_index) noexcept
 		{
 			return chunk_index & 0b111111;
 		}
 
-		static std::size_t free_blocks_index(std::size_t chunk_index)
+		static constexpr std::size_t free_blocks_index(std::size_t chunk_index) noexcept
 		{
 			return chunk_index >> 6;
 		}
