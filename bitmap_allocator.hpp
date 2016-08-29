@@ -23,7 +23,7 @@ namespace alloc
 
 		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept
 		{
-			return alignment <= memory_alignment ? pattern_length(size) + chunk_size : 0;
+			return pattern_length(size) * chunk_size;
 		}
 
 		bitmap_allocator() noexcept : _memory{nullptr, 0}
