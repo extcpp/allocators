@@ -23,6 +23,10 @@ namespace alloc
 		blob_allocator() noexcept : _allocated{false}
 		{ }
 
+		blob_allocator(blob_allocator const&) = delete;
+		blob_allocator(blob_allocator&&) = delete;
+
+
 		memblock allocate(std::size_t size, std::size_t alignment) noexcept
 		{
 			memblock out{nullptr, 0};

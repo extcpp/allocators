@@ -28,9 +28,33 @@ namespace alloc
 		stack_allocator() : _start{nullptr}, _cur{nullptr}, _end{nullptr}
 		{ }
 
+		stack_allocator(stack_allocator const&) = delete;
+
+		stack_allocator(stack_allocator&& other) noexcept
+			: _start{other._start}, _cur{other._cur}, _end{other._end}
+		{
+			other._start = nullptr;
+			other._cur = nullptr;
+			other._end = nullptr;
+		}
+
+		stack_allocator& operator= (stack_allocator&& other) noexcept
+		{
+			_start = other._start;
+			_cur = other._cur;
+			_end = other._end;
+
+			other._start = nullptr;
+			other._cur = nullptr;
+			other._end = nullptr;
+
+			return *this;
+		}
+
 		~stack_allocator()
 		{
-			ParentAllocator::deallocate({_start, _end - _start});
+			if(_start)
+				ParentAllocator::deallocate({_start, _end - _start});
 		}
 
 		memblock allocate(std::size_t size, std::size_t alignment)

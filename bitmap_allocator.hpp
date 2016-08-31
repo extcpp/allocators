@@ -29,9 +29,33 @@ namespace alloc
 		bitmap_allocator() noexcept : _memory{nullptr, 0}
 		{ }
 
+		bitmap_allocator(bitmap_allocator const&) = delete;
+		bitmap_allocator& operator= (bitmap_allocator const&) = delete;
+
+		bitmap_allocator(bitmap_allocator&& other)  noexcept
+		{
+			_memory = other._memory;
+			other._memory = {nullptr, 0};
+
+			for(std::size_t i=0; i<free_blocks_size; ++i)
+				_free_blocks[i] = other._free_blocks[i];
+		}
+
+		bitmap_allocator& operator= (bitmap_allocator&& other) noexcept
+		{
+			_memory = other._memory;
+			other._memory = {nullptr, 0};
+
+			for(std::size_t i=0; i<free_blocks_size; ++i)
+				_free_blocks[i] = other._free_blocks[i];
+
+			return *this;
+		}
+
 		~bitmap_allocator()
 		{
-			ParentAllocator::deallocate(_memory);
+			if(_memory.ptr)
+				ParentAllocator::deallocate(_memory);
 		}
 
 		memblock allocate(std::size_t size, std::size_t alignment)
