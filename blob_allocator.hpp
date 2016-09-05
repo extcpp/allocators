@@ -17,7 +17,7 @@ namespace alloc
 
 		static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept
 		{
-			return size <= memory_size && alignment <= memory_alignment ? size : 0;
+			return size <= memory_size && alignment <= memory_alignment ? memory_size : 0;
 		}
 
 		blob_allocator() noexcept : _allocated{false}
