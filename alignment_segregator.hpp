@@ -16,7 +16,7 @@ namespace alloc
 		struct extension_allocate_array<Derived, FirstAllocator, SecondAllocator,
 			std::enable_if_t<allocator_traits<FirstAllocator>::has_allocate_array && allocator_traits<SecondAllocator>::has_allocate_array>>
 		{
-			OutItr allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
+			std::tuple<OutItr, bool> allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
 			{
 				auto* parent = static_cast<Derived*>(this);
 				if(alignment <= AlignmentLessOrEqual)

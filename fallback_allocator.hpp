@@ -16,14 +16,15 @@ namespace alloc
 		struct extension_allocate_array<Derived, FirstAllocator, SecondAllocator,
 			std::enable_if_t<allocator_traits<FirstAllocator>::has_allocate_array && allocator_traits<SecondAllocator>::has_allocate_array>>
 		{
-			OutItr allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
+			template<typename OutItr>
+			std::tuple<OutItr, bool> allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
 			{
 				auto* parent = static_cast<Derived*>(this);
-				OutItr new_out_itr = static_cast<FirstAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
-				if(new_out_itr == out_itr)
-					new_out_itr = static_cast<SecondAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+				auto result = static_cast<FirstAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+				if(!std::get<1>(result))
+					result = static_cast<SecondAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
 
-				return new_out_itr;
+				return result;
 			}
 		};
 	} // namespace _detail

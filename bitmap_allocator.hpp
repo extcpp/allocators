@@ -66,11 +66,12 @@ namespace alloc
 		}
 
 		template<typename OutItr>
-		OutItr allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
+		std::tuple<OutItr, bool> allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr)
 		{
 			if(!_memory.ptr)
 				init();
 
+			bool success = false;
 			if(pattern_length(size) <= 128 && size * count <= num_chunks * chunk_size && 0 < size && _memory.ptr)
 			{
 				std::size_t sub_length = pattern_length(size);
@@ -92,10 +93,12 @@ namespace alloc
 
 					for(std::size_t i=0; i<count; ++i)
 						*out_itr++ = memblock{reinterpret_cast<char*>(_memory.ptr) + pos * chunk_size + i * sub_length * chunk_size, sub_length * chunk_size};
+
+					success = true;
 				}
 			}
 
-			return out_itr;
+			return std::tuple<OutItr, bool>{out_itr, success};
 		}
 
 		void deallocate(memblock block) noexcept
