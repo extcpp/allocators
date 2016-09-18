@@ -129,7 +129,7 @@ namespace alloc
 
 	/// returns a unique_ptr holding the given type create with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(nullptr_t, Args... args) ->
+	auto make_unique(std::nullptr_t, Args... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) == sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator>>
@@ -141,7 +141,7 @@ namespace alloc
 
 	/// returns a unique_ptr holding the given type create with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(nullptr_t, Args... args) ->
+	auto make_unique(std::nullptr_t, Args... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) != sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator, deleter_options::divergent_size>>
