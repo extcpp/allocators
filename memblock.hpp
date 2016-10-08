@@ -127,7 +127,7 @@ namespace alloc
 	};
 
 
-	/// returns a unique_ptr holding the given type create with a global instance of Allocator
+	/// returns a unique_ptr holding the given type created with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
 	auto make_unique(std::nullptr_t, Args... args) ->
 		std::enable_if_t<
@@ -139,7 +139,7 @@ namespace alloc
 		return std::unique_ptr<Type, deleter<Allocator>>{new (block.ptr) Type{args...}};
 	}
 
-	/// returns a unique_ptr holding the given type create with a global instance of Allocator
+	/// returns a unique_ptr holding the given type created with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
 	auto make_unique(std::nullptr_t, Args... args) ->
 		std::enable_if_t<
@@ -151,7 +151,7 @@ namespace alloc
 		return {new (block.ptr) Type{args...}, {block.size}};
 	}
 
-	/// returns a unique_ptr holding the given type create with the given allocator
+	/// returns a unique_ptr holding the given type created with the given allocator
 	template<typename Type, typename Allocator, typename... Args>
 	auto make_unique(Allocator* a, Args... args) ->
 		std::enable_if_t<
@@ -163,7 +163,7 @@ namespace alloc
 		return {new (block.ptr) Type{args...}, {a}};
 	}
 
-	/// returns a unique_ptr holding the given type create with the given allocator
+	/// returns a unique_ptr holding the given type created with the given allocator
 	template<typename Type, typename Allocator, typename... Args>
 	auto make_unique(Allocator* a, Args... args) ->
 		std::enable_if_t<
