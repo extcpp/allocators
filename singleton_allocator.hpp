@@ -31,7 +31,7 @@ namespace alloc
 	/**
 		\note The instance of Allocator will be created as a thread_local static function variable.
 	*/
-	template<typename Allocator>
+	template<typename Allocator, typename Tag = void>
 	struct singleton_allocator
 		: public _detail_singleton_allocator::extension_allocate_array<singleton_allocator<Allocator>, Allocator>
 	{
