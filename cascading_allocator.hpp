@@ -79,7 +79,7 @@ namespace alloc
 		cascading_allocator& operator=(cascading_allocator const&) = delete;
 
 		cascading_allocator(cascading_allocator&&) noexcept = default;
-		cascading_allocator& operator=(cascading_allocator&&) noexcept = default;
+		cascading_allocator& operator=(cascading_allocator&&) = default;
 
 		memblock allocate(std::size_t size, std::size_t alignment)
 		{
