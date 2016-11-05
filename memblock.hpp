@@ -129,50 +129,50 @@ namespace alloc
 
 	/// returns a unique_ptr holding the given type created with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(std::nullptr_t, Args... args) ->
+	auto make_unique(std::nullptr_t, Args&&... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) == sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator>>
 		>
 	{
 		auto block = Allocator::instance().allocate(sizeof(Type), alignof(Type));
-		return std::unique_ptr<Type, deleter<Allocator>>{new (block.ptr) Type{args...}};
+		return std::unique_ptr<Type, deleter<Allocator>>{new (block.ptr) Type{std::forward<Args>(args)...}};
 	}
 
 	/// returns a unique_ptr holding the given type created with a global instance of Allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(std::nullptr_t, Args... args) ->
+	auto make_unique(std::nullptr_t, Args&&... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) != sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator, deleter_options::divergent_size>>
 		>
 	{
 		auto block = Allocator::instance().allocate(sizeof(Type), alignof(Type));
-		return {new (block.ptr) Type{args...}, {block.size}};
+		return {new (block.ptr) Type{std::forward<Args>(args)...}, {block.size}};
 	}
 
 	/// returns a unique_ptr holding the given type created with the given allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(Allocator* a, Args... args) ->
+	auto make_unique(Allocator* a, Args&&... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) == sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator, deleter_options::local>>
 		>
 	{
 		auto block = a->allocate(sizeof(Type), alignof(Type));
-		return {new (block.ptr) Type{args...}, {a}};
+		return {new (block.ptr) Type{std::forward<Args>(args)...}, {a}};
 	}
 
 	/// returns a unique_ptr holding the given type created with the given allocator
 	template<typename Type, typename Allocator, typename... Args>
-	auto make_unique(Allocator* a, Args... args) ->
+	auto make_unique(Allocator* a, Args&&... args) ->
 		std::enable_if_t<
 			Allocator::actual_size(sizeof(Type), alignof(Type)) != sizeof(Type),
 			std::unique_ptr<Type, deleter<Allocator, deleter_options::divergent_size | deleter_options::local>>
 		>
 	{
 		auto block = a->allocate(sizeof(Type), alignof(Type));
-		return {new (block.ptr) Type{args...}, {a, block.size} };
+		return {new (block.ptr) Type{std::forward<Args>(args)...}, {a, block.size} };
 	}
 
 } // namespace alloc
