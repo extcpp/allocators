@@ -25,17 +25,17 @@ namespace alloc
 
 		static constexpr std::size_t alignment = Alignment;
 
-		allocator_wrapper(Allocator* allocator)
+		allocator_wrapper(Allocator* allocator) noexcept
 			: _allocator(allocator)
 		{ }
 
 		template<typename U>
-		allocator_wrapper(allocator_wrapper<U, Allocator> const& other) noexcept
+		allocator_wrapper(allocator_wrapper<U, Allocator, Alignment> const& other) noexcept
 			: _allocator{other._allocator}
 		{ }
 
 		template<typename U>
-		allocator_wrapper& operator= (allocator_wrapper<U, Allocator> const& other) noexcept
+		allocator_wrapper& operator= (allocator_wrapper<U, Allocator, Alignment> const& other) noexcept
 		{
 			_allocator = other._allocator;
 			return *this;
@@ -57,7 +57,6 @@ namespace alloc
 		void deallocate(T* ptr, std::size_t)
 		{
 			constexpr std::size_t actual_allignment = std::max(sizeof(memblock::size_t), alignment);
-
 
 			memblock block{
 				reinterpret_cast<char*>(ptr) - actual_allignment,
