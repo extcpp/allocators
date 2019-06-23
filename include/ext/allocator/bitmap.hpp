@@ -17,31 +17,22 @@ class bitmap_allocator : ParentAllocator {
     static constexpr std::size_t memory_alignment = Alignment;
     static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / 64) + 1;
 
-    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
-        (void) alignment;
-        return pattern_length(size) * chunk_size;
-    }
-
     bitmap_allocator() noexcept : _block{nullptr, 0} {}
-
     bitmap_allocator(bitmap_allocator const&) = delete;
     bitmap_allocator& operator=(bitmap_allocator const&) = delete;
 
     bitmap_allocator(bitmap_allocator&& other) noexcept {
         _block = other._block;
         other._block = {nullptr, 0};
-
         for (std::size_t i = 0; i < free_blocks_size; ++i) _free_blocks[i] = other._free_blocks[i];
     }
 
     bitmap_allocator& operator=(bitmap_allocator&& other) noexcept {
         _block = other._block;
         other._block = {nullptr, 0};
-
         for (std::size_t i = 0; i < free_blocks_size; ++i) {
             _free_blocks[i] = other._free_blocks[i];
         }
-
         return *this;
     }
 
@@ -50,10 +41,26 @@ class bitmap_allocator : ParentAllocator {
             ParentAllocator::deallocate(_block);
     }
 
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
+        (void) alignment;
+        return pattern_length(size) * chunk_size;
+    }
+
+    bool owns(memory_block block) const noexcept {
+        return reinterpret_cast<char*>(block.data) >= _block.data &&
+               reinterpret_cast<char*>(block.data) + block.size <= reinterpret_cast<char*>(_block.data) + _block.size;
+    }
+
     memory_block allocate(std::size_t alignment, std::size_t size) {
         memory_block out{nullptr, 0};
         allocate_array(alignment, size, 1, &out);
         return out;
+    }
+
+    void deallocate(memory_block block) noexcept {
+        assert(owns(block));
+        std::size_t pos = (reinterpret_cast<char*>(block.data) - reinterpret_cast<char*>(_block.data)) / chunk_size;
+        _free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
     }
 
     template<typename OutItr>
@@ -95,16 +102,6 @@ class bitmap_allocator : ParentAllocator {
         return std::tuple<OutItr, bool>{out_itr, success};
     }
 
-    void deallocate(memory_block block) noexcept {
-        assert(owns(block));
-        std::size_t pos = (reinterpret_cast<char*>(block.data) - reinterpret_cast<char*>(_block.data)) / chunk_size;
-        _free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
-    }
-
-    bool owns(memory_block block) const noexcept {
-        return reinterpret_cast<char*>(block.data) >= _block.data &&
-               reinterpret_cast<char*>(block.data) + block.size <= reinterpret_cast<char*>(_block.data) + _block.size;
-    }
 
     private:
     void init() {

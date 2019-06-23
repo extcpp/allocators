@@ -40,39 +40,20 @@ struct singleton_allocator
         return Allocator::actual_size(alignment, size);
     }
 
-    /// returns the global instance of allocator_t
+    /// returns the global thread_loacl instance of allocator_t
     static allocator_t& instance() {
         thread_local static allocator_t a;
         return a;
     }
 
-    /// allocates memory of given size and alignment
-    /**
-        \return Returns memory_block on success, which denotes the memory and size of the allocation,
-                a nullptr and 0 size otherwise.
-
-        \note This function is a requirement.
-    */
     memory_block allocate(std::size_t alignment, std::size_t size) {
         return instance().allocate(alignment, size);
     }
 
-    /// deallocates the memory denoted by the given memory_block
-    /**
-        \note The given memory_block object must previously be obtained by an allocate function of *this.
-              Passing in a memory_block object, which was not previously obtained by an allocate function
-              of *this leads to undefined behavior.
-
-        \note This function is a requirement.
-    */
     void deallocate(memory_block block) {
         return instance().deallocate(block);
     }
 
-    /// returns true if the given memory_block object denotes memory allocated by *this, false otherwise
-    /**
-        \note This function is a requirement.
-    */
     bool owns(memory_block block) const {
         return instance().owns(block);
     }

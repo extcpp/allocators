@@ -60,24 +60,25 @@ class cascading_allocator
         _detail_cascading_allocator::extension_allocate_array<cascading_allocator<ParentAllocator, ChildAllocator>,
                                                               ChildAllocator>;
     friend base;
-
     using base::allocate_helper;
 
     public:
     using parent_allocator_t = ParentAllocator;
     using child_allocator_t = ChildAllocator;
 
+    cascading_allocator() : _chunks{allocator_wrapper<child_allocator_t, parent_allocator_t>{this}} {}
+    cascading_allocator(cascading_allocator const&) = delete;
+    cascading_allocator& operator=(cascading_allocator const&) = delete;
+    cascading_allocator(cascading_allocator&&) noexcept = default;
+    cascading_allocator& operator=(cascading_allocator&&) = default;
+
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
         return ChildAllocator::actual_size(alignment, size);
     }
 
-    cascading_allocator() : _chunks{allocator_wrapper<child_allocator_t, parent_allocator_t>{this}} {}
-
-    cascading_allocator(cascading_allocator const&) = delete;
-    cascading_allocator& operator=(cascading_allocator const&) = delete;
-
-    cascading_allocator(cascading_allocator&&) noexcept = default;
-    cascading_allocator& operator=(cascading_allocator&&) = default;
+    bool owns(memory_block block) const {
+        return find(block) != _chunks.end();
+    }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {
         memory_block block{nullptr, 0};
@@ -89,10 +90,6 @@ class cascading_allocator
         auto itr = find(block);
         assert(itr != _chunks.end());
         itr->deallocate(block);
-    }
-
-    bool owns(memory_block block) const {
-        return find(block) != _chunks.end();
     }
 
     private:
@@ -122,7 +119,6 @@ class cascading_allocator
         return std::find_if(_chunks.begin(), _chunks.end(), [&](auto& a) { return a.owns(block); });
     }
 
-    private:
     std::vector<child_allocator_t, allocator_wrapper<child_allocator_t, parent_allocator_t>> _chunks;
 };
 } // namespace alloc

@@ -13,15 +13,17 @@ class alignas(Alignment) blob_allocator {
     static constexpr std::size_t memory_size = MemorySize;
     static constexpr std::size_t memory_alignment = Alignment;
 
+    blob_allocator() noexcept : _allocated{false} {}
+    blob_allocator(blob_allocator const&) = delete;
+    blob_allocator(blob_allocator&&) = delete;
+
     static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept {
         return size <= memory_size && alignment <= memory_alignment ? memory_size : 0;
     }
 
-    blob_allocator() noexcept : _allocated{false} {}
-
-    blob_allocator(blob_allocator const&) = delete;
-    blob_allocator(blob_allocator&&) = delete;
-
+    bool owns(memory_block block) const noexcept {
+        return block.data >= _data && reinterpret_cast<char*>(block.data) + block.size <= _data + memory_size;
+    }
 
     memory_block allocate(std::size_t alignment, std::size_t size) noexcept {
         memory_block out{nullptr, 0};
@@ -29,6 +31,12 @@ class alignas(Alignment) blob_allocator {
             out = allocate_all(alignment);
 
         return out;
+    }
+
+    void deallocate(memory_block block) noexcept {
+        (void) block;
+        assert(owns(block));
+        _allocated = false;
     }
 
     memory_block allocate_all(std::size_t alignment) noexcept {
@@ -42,18 +50,8 @@ class alignas(Alignment) blob_allocator {
         return out;
     }
 
-    void deallocate(memory_block block) noexcept {
-        (void) block;
-        assert(owns(block));
-        _allocated = false;
-    }
-
     void deallocate_all() noexcept {
         _allocated = false;
-    }
-
-    bool owns(memory_block block) const noexcept {
-        return block.data >= _data && reinterpret_cast<char*>(block.data) + block.size <= _data + memory_size;
     }
 
     private:

@@ -16,6 +16,7 @@ struct extension_allocate_array<
     FirstAllocator,
     SecondAllocator,
     std::enable_if_t<_detail::has_allocate_array_v<FirstAllocator> && _detail::has_allocate_array_v<SecondAllocator>>> {
+
     template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
@@ -42,6 +43,10 @@ class fallback_allocator
                    : std::numeric_limits<std::size_t>::max();
     }
 
+    bool owns(memory_block block) const {
+        return FirstAllocator::owns(block) || SecondAllocator::owns(block);
+    }
+
     memory_block allocate(std::size_t size, size_t alignment) {
         auto block = FirstAllocator::allocate(alignment, size);
         if (!block.data) {
@@ -57,10 +62,6 @@ class fallback_allocator
         } else {
             SecondAllocator::deallocate(block);
         }
-    }
-
-    bool owns(memory_block block) const {
-        return FirstAllocator::owns(block) || SecondAllocator::owns(block);
     }
 };
 
