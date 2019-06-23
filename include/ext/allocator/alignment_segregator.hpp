@@ -49,10 +49,11 @@ struct alignment_segregator
     static constexpr std::size_t dividing_alignment = AlignmentLessOrEqual;
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
-        if (alignment <= dividing_alignment)
+        if (alignment <= dividing_alignment) {
             return FirstAllocator::actual_size(alignment, size);
-        else
+        } else {
             return SecondAllocator::actual_size(alignment, size);
+        }
     }
 
     /// allocates memory of given size and alignment
@@ -63,10 +64,11 @@ struct alignment_segregator
         \note This function is a requirement.
     */
     memory_block allocate(std::size_t alignment, std::size_t size) {
-        if (alignment <= dividing_alignment)
+        if (alignment <= dividing_alignment) {
             return FirstAllocator::allocate(alignment, size);
-        else
+        } else {
             return SecondAllocator::allocate(alignment, size);
+        }
     }
 
     /// deallocates the memory denoted by the given memory_block
@@ -78,10 +80,11 @@ struct alignment_segregator
         \note This function is a requirement.
     */
     void deallocate(memory_block block) {
-        if (FirstAllocator::owns(block))
+        if (FirstAllocator::owns(block)) {
             return FirstAllocator::deallocate(block);
-        else
+        } else {
             return SecondAllocator::deallocate(block);
+        }
     }
 
     /// returns true if the given memory_block object denotes memory allocated by *this, false otherwise

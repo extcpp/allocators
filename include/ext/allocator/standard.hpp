@@ -15,9 +15,9 @@ class standard_allocator {
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {
-        auto* ptr = (std::byte*) std::aligned_alloc(alignment, size);
-        if (ptr) {
-            return {ptr, size};
+        auto* data = (std::byte*) std::aligned_alloc(alignment, size);
+        if (data) {
+            return {data, size};
         } else {
             return {nullptr, 0};
         }

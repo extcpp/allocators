@@ -12,18 +12,17 @@ namespace alloc {
 template<typename T, typename Allocator, std::size_t Alignment = alignof(T)>
 class allocator_wrapper {
     public:
-    template<typename U>
-    struct rebind {
-        using other = allocator_wrapper<U, Allocator, Alignment>;
-    };
+    static constexpr std::size_t alignment = Alignment;
 
-    public:
     using value_type = T;
     using propagate_on_container_copy_assignment = std::true_type;
     using propagate_on_container_move_assignment = std::true_type;
     using propagate_on_container_swap = std::true_type;
 
-    static constexpr std::size_t alignment = Alignment;
+    template<typename U>
+    struct rebind {
+        using other = allocator_wrapper<U, Allocator, Alignment>;
+    };
 
     allocator_wrapper(Allocator* allocator) noexcept : _allocator(allocator) {}
 
@@ -37,21 +36,29 @@ class allocator_wrapper {
         return *this;
     }
 
-    T* allocate(std::size_t n) {
+    value_type* allocate(std::size_t n) const {
+        // const is require by the standard and it is ok as we work on a pointer (_allocator)
         constexpr std::size_t actual_allignment = std::max(sizeof(size_t), alignment);
-        memory_block block = _allocator->allocate(actual_allignment, actual_allignment + sizeof(T) * n);
+
+        memory_block block = _allocator->allocate(actual_allignment,
+                                                  actual_allignment /*storage for size*/ +
+                                                      sizeof(value_type) * n /*storage for real data*/);
+
         if (block.data) {
-            *reinterpret_cast<size_t*>(block.data) = block.size;
+            *reinterpret_cast<size_t*>(block.data) = block.size; // save block size before type
             return reinterpret_cast<T*>(reinterpret_cast<char*>(block.data) + actual_allignment);
-        } else
+        } else {
             throw std::bad_alloc{};
+        }
     }
 
-    void deallocate(T* ptr, std::size_t) {
+    void deallocate(T* ptr, std::size_t) const {
         constexpr std::size_t actual_allignment = std::max(sizeof(size_t), alignment);
 
-        memory_block block{reinterpret_cast<std::byte*>(ptr) - actual_allignment,
-                           *reinterpret_cast<size_t*>(reinterpret_cast<std::byte*>(ptr) - actual_allignment)};
+        // restore original block
+        std::byte* data = reinterpret_cast<std::byte*>(ptr) - actual_allignment;
+        std::size_t size = *reinterpret_cast<size_t*>(data);
+        memory_block block{data, size};
 
         assert(_allocator->owns(block));
         _allocator->deallocate(block);

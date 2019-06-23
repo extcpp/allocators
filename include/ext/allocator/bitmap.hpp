@@ -38,7 +38,9 @@ class bitmap_allocator : ParentAllocator {
         _block = other._block;
         other._block = {nullptr, 0};
 
-        for (std::size_t i = 0; i < free_blocks_size; ++i) _free_blocks[i] = other._free_blocks[i];
+        for (std::size_t i = 0; i < free_blocks_size; ++i) {
+            _free_blocks[i] = other._free_blocks[i];
+        }
 
         return *this;
     }
@@ -68,19 +70,23 @@ class bitmap_allocator : ParentAllocator {
             std::uint64_t pat = pattern(length);
 
             std::size_t pos = 0;
-            while (check_position(pos, length, alignment) == false && pos <= max_pos) ++pos;
+            while (check_position(pos, length, alignment) == false && pos <= max_pos) {
+                ++pos;
+            }
 
             if (pos <= max_pos) {
                 auto shift = pattern_shift(pos);
                 auto index = free_blocks_index(pos);
                 _free_blocks[index] &= ~(pat << shift);
-                if ((shift & 63) + length > 64)
+                if ((shift & 63) + length > 64) {
                     _free_blocks[index + 1] &= ~(pat >> (64 - shift));
+                }
 
-                for (std::size_t i = 0; i < count; ++i)
+                for (std::size_t i = 0; i < count; ++i) {
                     *out_itr++ = memory_block{reinterpret_cast<std::byte*>(_block.data) + pos * chunk_size +
                                                   i * sub_length * chunk_size,
                                               sub_length * chunk_size};
+                }
 
                 success = true;
             }
@@ -106,10 +112,11 @@ class bitmap_allocator : ParentAllocator {
         std::fill(_free_blocks, _free_blocks + free_blocks_size - 1, ~std::uint64_t{0});
 
         auto remaining = num_chunks - 64 * (free_blocks_size - 1);
-        if (remaining < 64)
+        if (remaining < 64) {
             _free_blocks[free_blocks_size - 1] = pattern(remaining);
-        else
+        } else {
             _free_blocks[free_blocks_size - 1] = ~std::uint64_t{0};
+        }
     }
 
     bool check_position(std::size_t pos, std::size_t length, std::size_t alignment) const noexcept {
@@ -122,8 +129,9 @@ class bitmap_allocator : ParentAllocator {
         std::uint64_t pat = pattern(length);
 
         bool out = (_free_blocks[index] & (pat << shift)) == (pat << shift);
-        if ((shift & 63) + length > 64)
+        if ((shift & 63) + length > 64) {
             out = out && (_free_blocks[index + 1] & (pat >> (64 - shift))) == (pat >> (64 - shift));
+        }
 
         return out;
     }
