@@ -15,9 +15,9 @@ template<typename Derived, typename Allocator>
 struct extension_allocate_array<Derived, Allocator, std::enable_if_t<_detail::has_allocate_array_v<Allocator>>> {
     template<typename OutItr>
     std::tuple<OutItr, bool>
-        allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
+        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         auto* parent = static_cast<Derived*>(this);
-        return parent->instance().allocate_array(size, alignment, count, out_itr);
+        return parent->instance().allocate_array(alignment, size, count, out_itr);
     }
 };
 } // namespace _detail_singleton_allocator
@@ -36,8 +36,8 @@ struct singleton_allocator
         \note If the size cannot be determined at compile time, the returned size is
        std::numeric_limits<std::size_t>::max()
     */
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) {
-        return Allocator::actual_size(size, alignment);
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
+        return Allocator::actual_size(alignment, size);
     }
 
     /// returns the global instance of allocator_t
@@ -53,8 +53,8 @@ struct singleton_allocator
 
         \note This function is a requirement.
     */
-    memory_block allocate(std::size_t size, std::size_t alignment) {
-        return instance().allocate(size, alignment);
+    memory_block allocate(std::size_t alignment, std::size_t size) {
+        return instance().allocate(alignment, size);
     }
 
     /// deallocates the memory denoted by the given memory_block

@@ -30,7 +30,7 @@ class free_list_allocator : ParentAllocator {
         return ((size - 1) / ChunkSize + 1) * ChunkSize;
     }
 
-    memory_block allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t alignment, std::size_t size) {
         if (_head && MinSize <= size && size <= MaxSize && _head) {
             char* ptr = _head;
             std::size_t space = ChunkSize;
@@ -40,7 +40,7 @@ class free_list_allocator : ParentAllocator {
             }
         }
 
-        return ParentAllocator::allocate(actual_size(size), alignment);
+        return ParentAllocator::allocate(alignment, actual_size(size));
     }
 
     // TODO: implement reallocate

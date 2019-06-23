@@ -39,7 +39,7 @@ class allocator_wrapper {
 
     T* allocate(std::size_t n) {
         constexpr std::size_t actual_allignment = std::max(sizeof(size_t), alignment);
-        memory_block block = _allocator->allocate(actual_allignment + sizeof(T) * n, actual_allignment);
+        memory_block block = _allocator->allocate(actual_allignment, actual_allignment + sizeof(T) * n);
         if (block.data) {
             *reinterpret_cast<size_t*>(block.data) = block.size;
             return reinterpret_cast<T*>(reinterpret_cast<char*>(block.data) + actual_allignment);

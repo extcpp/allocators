@@ -48,15 +48,15 @@ class bitmap_allocator : ParentAllocator {
             ParentAllocator::deallocate(_block);
     }
 
-    memory_block allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t alignment, std::size_t size) {
         memory_block out{nullptr, 0};
-        allocate_array(size, alignment, 1, &out);
+        allocate_array(alignment, size, 1, &out);
         return out;
     }
 
     template<typename OutItr>
     std::tuple<OutItr, bool>
-        allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
+        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         if (!_block.data)
             init();
 

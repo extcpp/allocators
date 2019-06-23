@@ -17,10 +17,10 @@ class extension_allocate_array {
     protected:
     template<typename OutItr>
     std::tuple<OutItr, bool> allocate_helper(
-        ChildAllocator& allocator, std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
-        (void) count; // fixme
+        ChildAllocator& allocator, std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
+        (void) count; // FIXME
         assert(count == 1);
-        memory_block block = allocator.allocate(size, alignment);
+        memory_block block = allocator.allocate(alignment, size);
         if (block.data) {
             *out_itr++ = block;
             return {out_itr, true};
@@ -36,15 +36,15 @@ class extension_allocate_array<Derived,
     public:
     template<typename OutItr>
     std::tuple<OutItr, bool>
-        allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
-        return static_cast<Derived*>(this)->allocate_impl(size, alignment, count, out_itr);
+        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
+        return static_cast<Derived*>(this)->allocate_impl(alignment, size, count, out_itr);
     }
 
     protected:
     template<typename OutItr>
     std::tuple<OutItr, bool> allocate_helper(
-        ChildAllocator& allocator, std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
-        return allocator.allocate_array(size, alignment, count, out_itr);
+        ChildAllocator& allocator, std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
+        return allocator.allocate_array(alignment, size, count, out_itr);
     }
 };
 } // namespace _detail_cascading_allocator
@@ -67,8 +67,8 @@ class cascading_allocator
     using parent_allocator_t = ParentAllocator;
     using child_allocator_t = ChildAllocator;
 
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) {
-        return ChildAllocator::actual_size(size, alignment);
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
+        return ChildAllocator::actual_size(alignment, size);
     }
 
     cascading_allocator() : _chunks{allocator_wrapper<child_allocator_t, parent_allocator_t>{this}} {}
@@ -79,9 +79,9 @@ class cascading_allocator
     cascading_allocator(cascading_allocator&&) noexcept = default;
     cascading_allocator& operator=(cascading_allocator&&) = default;
 
-    memory_block allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t alignment, std::size_t size) {
         memory_block block{nullptr, 0};
-        allocate_impl(size, alignment, 1, &block);
+        allocate_impl(alignment, size, 1, &block);
         return block;
     }
 
@@ -97,17 +97,17 @@ class cascading_allocator
 
     private:
     template<typename OutItr>
-    std::tuple<OutItr, bool> allocate_impl(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
+    std::tuple<OutItr, bool> allocate_impl(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         std::tuple<OutItr, bool> result{out_itr, false};
         for (auto itr = _chunks.begin(); itr != _chunks.end(); ++itr) {
-            result = allocate_helper(*itr, size, alignment, count, out_itr);
+            result = allocate_helper(*itr, alignment, size, count, out_itr);
             if (std::get<1>(result))
                 return result;
         }
 
         try {
             _chunks.emplace_back();
-            result = allocate_helper(_chunks.back(), size, alignment, count, out_itr);
+            result = allocate_helper(_chunks.back(), alignment, size, count, out_itr);
         } catch (std::bad_alloc&) {
         }
 

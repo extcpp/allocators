@@ -23,12 +23,12 @@ struct extension_allocate_array<
     std::enable_if_t<_detail::has_allocate_array_v<FirstAllocator> && _detail::has_allocate_array_v<SecondAllocator>>> {
     template<typename OutItr>
     std::tuple<OutItr, bool>
-        allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
+        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         auto* parent = static_cast<Derived*>(this);
         if (size <= SizeLessOrEqual)
-            return static_cast<FirstAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+            return static_cast<FirstAllocator*>(parent)->allocate_array(alignment, size, count, out_itr);
         else
-            return static_cast<SecondAllocator*>(parent)->allocate_array(size, alignment, count, out_itr);
+            return static_cast<SecondAllocator*>(parent)->allocate_array(alignment, size, count, out_itr);
     }
 };
 } // namespace _detail_size_segregator
@@ -47,11 +47,11 @@ struct size_segregator
 
     static constexpr std::size_t dividing_size = SizeLessOrEqual;
 
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) {
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
         if (size <= dividing_size)
-            return FirstAllocator::actual_size(size, alignment);
+            return FirstAllocator::actual_size(alignment, size);
         else
-            return SecondAllocator::actual_size(size, alignment);
+            return SecondAllocator::actual_size(alignment, size);
     }
 
     /// allocates memory of given size and alignment
@@ -61,11 +61,11 @@ struct size_segregator
 
         \note This function is a requirement.
     */
-    memory_block allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t alignment, std::size_t size) {
         if (size <= dividing_size)
-            return FirstAllocator::allocate(size, alignment);
+            return FirstAllocator::allocate(alignment, size);
         else
-            return SecondAllocator::allocate(size, alignment);
+            return SecondAllocator::allocate(alignment, size);
     }
 
     /// deallocates the memory denoted by the given memory_block

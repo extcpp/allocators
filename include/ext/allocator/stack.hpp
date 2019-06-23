@@ -18,7 +18,7 @@ class stack_allocator : ParentAllocator {
     static constexpr std::size_t memory_size = MemorySize;
     static constexpr std::size_t memory_alignment = Alignment;
 
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept {
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
         return alignment <= memory_alignment ? ((size - 1) / memory_alignment + 1) * memory_alignment : 0;
     }
 
@@ -49,7 +49,7 @@ class stack_allocator : ParentAllocator {
             ParentAllocator::deallocate({_start, _end - _start});
     }
 
-    memory_block allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t alignment, std::size_t size) {
         if (!_start)
             init();
 

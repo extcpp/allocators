@@ -23,7 +23,7 @@ class alignas(Alignment) blob_allocator {
     blob_allocator(blob_allocator&&) = delete;
 
 
-    memory_block allocate(std::size_t size, std::size_t alignment) noexcept {
+    memory_block allocate(std::size_t alignment, std::size_t size) noexcept {
         memory_block out{nullptr, 0};
         if (size <= memory_size)
             out = allocate_all(alignment);
