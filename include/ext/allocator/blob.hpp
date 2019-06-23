@@ -1,7 +1,7 @@
 #ifndef INCLGUARD_blob_allocator_hpp
 #define INCLGUARD_blob_allocator_hpp
 
-#include "memblock.hpp"
+#include "detail_block.hpp"
 #include <boost/align/aligned_alloc.hpp>
 #include <cassert>
 #include <cstddef>
@@ -23,16 +23,16 @@ class alignas(Alignment) blob_allocator {
     blob_allocator(blob_allocator&&) = delete;
 
 
-    memblock allocate(std::size_t size, std::size_t alignment) noexcept {
-        memblock out{nullptr, 0};
+    memory_block allocate(std::size_t size, std::size_t alignment) noexcept {
+        memory_block out{nullptr, 0};
         if (size <= memory_size)
             out = allocate_all(alignment);
 
         return out;
     }
 
-    memblock allocate_all(std::size_t alignment) noexcept {
-        memblock out{nullptr, 0};
+    memory_block allocate_all(std::size_t alignment) noexcept {
+        memory_block out{nullptr, 0};
 
         if (!_allocated && alignment <= memory_alignment) {
             out = {_data, memory_size};
@@ -42,7 +42,8 @@ class alignas(Alignment) blob_allocator {
         return out;
     }
 
-    void deallocate(memblock block) noexcept {
+    void deallocate(memory_block block) noexcept {
+        (void) block;
         assert(owns(block));
         _allocated = false;
     }
@@ -51,8 +52,8 @@ class alignas(Alignment) blob_allocator {
         _allocated = false;
     }
 
-    bool owns(memblock block) const noexcept {
-        return block.ptr >= _data && reinterpret_cast<char*>(block.ptr) + block.size <= _data + memory_size;
+    bool owns(memory_block block) const noexcept {
+        return block.data >= _data && reinterpret_cast<char*>(block.data) + block.size <= _data + memory_size;
     }
 
     private:

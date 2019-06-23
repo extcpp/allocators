@@ -1,8 +1,9 @@
 #ifndef INCLGUARD_fallback_allocator_hpp
 #define INCLGUARD_fallback_allocator_hpp
 
-#include "memblock.hpp"
-#include <cstddef>
+#include "detail_block.hpp"
+#include "detail_traits.hpp"
+#include <tuple>
 
 namespace alloc {
 namespace _detail_fallback_allocator {
@@ -10,11 +11,11 @@ template<typename Derived, typename FirstAllocator, typename SecondAllocator, ty
 struct extension_allocate_array {};
 
 template<typename Derived, typename FirstAllocator, typename SecondAllocator>
-struct extension_allocate_array<Derived,
-                                FirstAllocator,
-                                SecondAllocator,
-                                std::enable_if_t<allocator_traits<FirstAllocator>::has_allocate_array &&
-                                                 allocator_traits<SecondAllocator>::has_allocate_array>> {
+struct extension_allocate_array<
+    Derived,
+    FirstAllocator,
+    SecondAllocator,
+    std::enable_if_t<_detail::has_allocate_array_v<FirstAllocator> && _detail::has_allocate_array_v<SecondAllocator>>> {
     template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
@@ -30,7 +31,8 @@ struct extension_allocate_array<Derived,
 
 template<typename FirstAllocator, typename SecondAllocator>
 class fallback_allocator
-    : public _detail_fallback_allocator::extension_allocate_array<fallback_allocator, FirstAllocator, SecondAllocator>
+    : public _detail_fallback_allocator::
+          extension_allocate_array<fallback_allocator<FirstAllocator, SecondAllocator>, FirstAllocator, SecondAllocator>
     , private FirstAllocator
     , private SecondAllocator {
     public:
@@ -40,22 +42,24 @@ class fallback_allocator
                    : std::numeric_limits<std::size_t>::max();
     }
 
-    memblock allocate(std::size_t size, size_t alignment) {
+    memory_block allocate(std::size_t size, size_t alignment) {
         auto block = FirstAllocator::allocate(size, alignment);
-        if (!block.ptr)
+        if (!block.data) {
             block = SecondAllocator::allocate(size, alignment);
+        }
 
         return block;
     }
 
-    void deallocate(memblock block) {
-        if (FirstAllocator::owns(block))
+    void deallocate(memory_block block) {
+        if (FirstAllocator::owns(block)) {
             FirstAllocator::deallocate(block);
-        else
+        } else {
             SecondAllocator::deallocate(block);
+        }
     }
 
-    bool owns(memblock block) const {
+    bool owns(memory_block block) const {
         return FirstAllocator::owns(block) || SecondAllocator::owns(block);
     }
 };

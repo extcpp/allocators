@@ -1,10 +1,10 @@
 #ifndef INCLGUARD_stack_allocator_hpp
 #define INCLGUARD_stack_allocator_hpp
 
-#include "memblock.hpp"
-#include <boost/align/aligned_alloc.hpp>
+#include "detail_block.hpp"
+//#include <boost/align/aligned_alloc.hpp>
 #include <cassert>
-#include <cstddef>
+//#include <cstddef>
 
 namespace alloc {
 /// allocates memory in a stack like manner
@@ -16,7 +16,7 @@ template<typename ParentAllocator, std::size_t MemorySize, std::size_t Alignment
 class stack_allocator : ParentAllocator {
     public:
     static constexpr std::size_t memory_size = MemorySize;
-    static constexpr std::sizt_t memory_alignment = Alignment;
+    static constexpr std::size_t memory_alignment = Alignment;
 
     static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept {
         return alignment <= memory_alignment ? ((size - 1) / memory_alignment + 1) * memory_alignment : 0;
@@ -49,11 +49,11 @@ class stack_allocator : ParentAllocator {
             ParentAllocator::deallocate({_start, _end - _start});
     }
 
-    memblock allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t size, std::size_t alignment) {
         if (!_start)
             init();
 
-        memblock out{nullptr, 0};
+        memory_block out{nullptr, 0};
 
         // refuses alignments greater than memory_alignment
         if (_cur && alignment <= memory_alignment) {
@@ -65,8 +65,8 @@ class stack_allocator : ParentAllocator {
         return out;
     }
 
-    memblock allocate_all(std::size_t alignment) {
-        memblock out{nullptr, 0};
+    memory_block allocate_all(std::size_t alignment) {
+        memory_block out{nullptr, 0};
 
         if (!_start)
             init();
@@ -79,23 +79,23 @@ class stack_allocator : ParentAllocator {
         return out;
     }
 
-    void deallocate(memblock block) {
-        if (block.ptr + block.size == _cur)
-            _cur = block.ptr;
+    void deallocate(memory_block block) {
+        if (block.data + block.size == _cur)
+            _cur = block.data;
     }
 
     void deallocate_all() {
         _cur = _start;
     }
 
-    bool owns(memblock block) const {
-        return block.ptr >= _start && block.ptr + block.size <= _end;
+    bool owns(memory_block block) const {
+        return block.data >= _start && block.data + block.size <= _end;
     }
 
     private:
     void init() {
         auto block = ParentAllocator::allocate(memory_size, memory_alignment);
-        _end = _start = _cur = block.ptr;
+        _end = _start = _cur = block.data;
         _end += block.size;
     }
 

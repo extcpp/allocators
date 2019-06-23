@@ -1,11 +1,14 @@
 #ifndef INCLGUARD_cascading_allocator_hpp
 #define INCLGUARD_cascading_allocator_hpp
 
-#include "allocator_traits.hpp"
-#include "allocator_wrapper.hpp"
-#include "memblock.hpp"
+#include "detail_block.hpp"
+#include "detail_traits.hpp"
+#include "stl_wrapper.hpp"
+
 #include <cassert>
 #include <cstddef>
+#include <tuple>
+#include <vector>
 
 namespace alloc {
 namespace _detail_cascading_allocator {
@@ -15,9 +18,10 @@ class extension_allocate_array {
     template<typename OutItr>
     std::tuple<OutItr, bool> allocate_helper(
         ChildAllocator& allocator, std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
+        (void) count; // fixme
         assert(count == 1);
-        memblock block = allocator.allocate(size, alignment);
-        if (block.ptr) {
+        memory_block block = allocator.allocate(size, alignment);
+        if (block.data) {
             *out_itr++ = block;
             return {out_itr, true};
         } else
@@ -28,7 +32,7 @@ class extension_allocate_array {
 template<typename Derived, typename ChildAllocator>
 class extension_allocate_array<Derived,
                                ChildAllocator,
-                               std::enable_if_t<alloc::allocator_traits<ChildAllocator>::has_allocate_array>> {
+                               std::enable_if_t<_detail::has_allocate_array_v<ChildAllocator>>> {
     public:
     template<typename OutItr>
     std::tuple<OutItr, bool>
@@ -75,19 +79,19 @@ class cascading_allocator
     cascading_allocator(cascading_allocator&&) noexcept = default;
     cascading_allocator& operator=(cascading_allocator&&) = default;
 
-    memblock allocate(std::size_t size, std::size_t alignment) {
-        memblock block{nullptr, 0};
+    memory_block allocate(std::size_t size, std::size_t alignment) {
+        memory_block block{nullptr, 0};
         allocate_impl(size, alignment, 1, &block);
         return block;
     }
 
-    void deallocate(memblock block) {
+    void deallocate(memory_block block) {
         auto itr = find(block);
         assert(itr != _chunks.end());
         itr->deallocate(block);
     }
 
-    bool owns(memblock block) const {
+    bool owns(memory_block block) const {
         return find(block) != _chunks.end();
     }
 
@@ -110,11 +114,11 @@ class cascading_allocator
         return result;
     }
 
-    auto find(memblock block) const {
+    auto find(memory_block block) const {
         return std::find_if(_chunks.begin(), _chunks.end(), [&](auto& a) { return a->owns(block); });
     }
 
-    auto find(memblock block) {
+    auto find(memory_block block) {
         return std::find_if(_chunks.begin(), _chunks.end(), [&](auto& a) { return a.owns(block); });
     }
 

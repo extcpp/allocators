@@ -1,12 +1,10 @@
 #ifndef INCLGUARD_bitmap_allocator_hpp
 #define INCLGUARD_bitmap_allocator_hpp
 
-#include "memblock.hpp"
-#include <boost/align/aligned_alloc.hpp>
-#include <boost/integer.hpp>
+#include "detail_block.hpp"
+
 #include <cassert>
-#include <cstddef>
-#include <cstdint>
+#include <tuple>
 
 namespace alloc {
 template<typename ParentAllocator, std::size_t ChunkSize, std::size_t NumChunks, std::size_t Alignment>
@@ -19,25 +17,26 @@ class bitmap_allocator : ParentAllocator {
     static constexpr std::size_t memory_alignment = Alignment;
     static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / 64) + 1;
 
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept {
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
+        (void) alignment;
         return pattern_length(size) * chunk_size;
     }
 
-    bitmap_allocator() noexcept : _memory{nullptr, 0} {}
+    bitmap_allocator() noexcept : _block{nullptr, 0} {}
 
     bitmap_allocator(bitmap_allocator const&) = delete;
     bitmap_allocator& operator=(bitmap_allocator const&) = delete;
 
     bitmap_allocator(bitmap_allocator&& other) noexcept {
-        _memory = other._memory;
-        other._memory = {nullptr, 0};
+        _block = other._block;
+        other._block = {nullptr, 0};
 
         for (std::size_t i = 0; i < free_blocks_size; ++i) _free_blocks[i] = other._free_blocks[i];
     }
 
     bitmap_allocator& operator=(bitmap_allocator&& other) noexcept {
-        _memory = other._memory;
-        other._memory = {nullptr, 0};
+        _block = other._block;
+        other._block = {nullptr, 0};
 
         for (std::size_t i = 0; i < free_blocks_size; ++i) _free_blocks[i] = other._free_blocks[i];
 
@@ -45,12 +44,12 @@ class bitmap_allocator : ParentAllocator {
     }
 
     ~bitmap_allocator() {
-        if (_memory.ptr)
-            ParentAllocator::deallocate(_memory);
+        if (_block.data)
+            ParentAllocator::deallocate(_block);
     }
 
-    memblock allocate(std::size_t size, std::size_t alignment) {
-        memblock out{nullptr, 0};
+    memory_block allocate(std::size_t size, std::size_t alignment) {
+        memory_block out{nullptr, 0};
         allocate_array(size, alignment, 1, &out);
         return out;
     }
@@ -58,11 +57,11 @@ class bitmap_allocator : ParentAllocator {
     template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
-        if (!_memory.ptr)
+        if (!_block.data)
             init();
 
         bool success = false;
-        if (pattern_length(size) <= 128 && size * count <= num_chunks * chunk_size && 0 < size && _memory.ptr) {
+        if (pattern_length(size) <= 128 && size * count <= num_chunks * chunk_size && 0 < size && _block.data) {
             std::size_t sub_length = pattern_length(size);
             std::size_t length = sub_length * count;
             std::size_t max_pos = num_chunks - length;
@@ -79,9 +78,9 @@ class bitmap_allocator : ParentAllocator {
                     _free_blocks[index + 1] &= ~(pat >> (64 - shift));
 
                 for (std::size_t i = 0; i < count; ++i)
-                    *out_itr++ =
-                        memblock{reinterpret_cast<char*>(_memory.ptr) + pos * chunk_size + i * sub_length * chunk_size,
-                                 sub_length * chunk_size};
+                    *out_itr++ = memory_block{reinterpret_cast<std::byte*>(_block.data) + pos * chunk_size +
+                                                  i * sub_length * chunk_size,
+                                              sub_length * chunk_size};
 
                 success = true;
             }
@@ -90,20 +89,20 @@ class bitmap_allocator : ParentAllocator {
         return std::tuple<OutItr, bool>{out_itr, success};
     }
 
-    void deallocate(memblock block) noexcept {
+    void deallocate(memory_block block) noexcept {
         assert(owns(block));
-        std::size_t pos = (reinterpret_cast<char*>(block.ptr) - reinterpret_cast<char*>(_memory.ptr)) / chunk_size;
+        std::size_t pos = (reinterpret_cast<char*>(block.data) - reinterpret_cast<char*>(_block.data)) / chunk_size;
         _free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
     }
 
-    bool owns(memblock block) const noexcept {
-        return reinterpret_cast<char*>(block.ptr) >= _memory.ptr &&
-               reinterpret_cast<char*>(block.ptr) + block.size <= reinterpret_cast<char*>(_memory.ptr) + _memory.size;
+    bool owns(memory_block block) const noexcept {
+        return reinterpret_cast<char*>(block.data) >= _block.data &&
+               reinterpret_cast<char*>(block.data) + block.size <= reinterpret_cast<char*>(_block.data) + _block.size;
     }
 
     private:
     void init() {
-        _memory = ParentAllocator::allocate(chunk_size * num_chunks, memory_alignment);
+        _block = ParentAllocator::allocate(chunk_size * num_chunks, memory_alignment);
         std::fill(_free_blocks, _free_blocks + free_blocks_size - 1, ~std::uint64_t{0});
 
         auto remaining = num_chunks - 64 * (free_blocks_size - 1);
@@ -115,7 +114,7 @@ class bitmap_allocator : ParentAllocator {
 
     bool check_position(std::size_t pos, std::size_t length, std::size_t alignment) const noexcept {
         // check alignment of position
-        if (((reinterpret_cast<intptr_t>(_memory.ptr) + pos * chunk_size) & (alignment - 1)) != 0)
+        if (((reinterpret_cast<intptr_t>(_block.data) + pos * chunk_size) & (alignment - 1)) != 0)
             return false;
 
         std::size_t index = free_blocks_index(pos);
@@ -146,7 +145,7 @@ class bitmap_allocator : ParentAllocator {
     }
 
     private:
-    memblock _memory;
+    memory_block _block;
     std::uint64_t _free_blocks[free_blocks_size];
 };
 } // namespace alloc

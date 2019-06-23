@@ -1,8 +1,9 @@
 #ifndef INCLGUARD_size_segregator_hpp
 #define INCLGUARD_size_segregator_hpp
 
-#include "memblock.hpp"
-#include <cstddef>
+#include "detail_block.hpp"
+#include "detail_traits.hpp"
+#include <type_traits>
 
 namespace alloc {
 namespace _detail_size_segregator {
@@ -14,11 +15,13 @@ template<typename Derived,
 struct extension_allocate_array {};
 
 template<typename Derived, typename FirstAllocator, typename SecondAllocator, std::size_t SizeLessOrEqual>
-struct extension_allocate_array<Derived,
-                                FirstAllocator,
-                                SecondAllocator,
-                                std::enable_if_t<allocator_traits<FirstAllocator>::has_allocate_array &&
-                                                 allocator_traits<SecondAllocator>::has_allocate_array>> {
+struct extension_allocate_array<
+    Derived,
+    FirstAllocator,
+    SecondAllocator,
+    SizeLessOrEqual,
+    std::enable_if_t<_detail::has_allocate_array_v<FirstAllocator> && _detail::has_allocate_array_v<SecondAllocator>>> {
+    template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
         auto* parent = static_cast<Derived*>(this);
@@ -32,8 +35,11 @@ struct extension_allocate_array<Derived,
 
 template<typename FirstAllocator, typename SecondAllocator, std::size_t SizeLessOrEqual>
 struct size_segregator
-    : public _detail_size_segregator::
-          extension_allocate_array<size_segregator, FirstAllocator, SecondAllocator, SizeLessOrEqual>
+    : public _detail_size_segregator::extension_allocate_array<
+          size_segregator<FirstAllocator, SecondAllocator, SizeLessOrEqual>,
+          FirstAllocator,
+          SecondAllocator,
+          SizeLessOrEqual>
     , private FirstAllocator
     , private SecondAllocator {
     using first_allocator = FirstAllocator;
@@ -50,44 +56,44 @@ struct size_segregator
 
     /// allocates memory of given size and alignment
     /**
-        \return Returns memblock on success, which denotes the memory and size of the allocation,
+        \return Returns memory_block on success, which denotes the memory and size of the allocation,
                 a nullptr and 0 size otherwise.
 
         \note This function is a requirement.
     */
-    memblock allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t size, std::size_t alignment) {
         if (size <= dividing_size)
             return FirstAllocator::allocate(size, alignment);
         else
             return SecondAllocator::allocate(size, alignment);
     }
 
-    /// deallocates the memory denoted by the given memblock
+    /// deallocates the memory denoted by the given memory_block
     /**
-        \note The given memblock object must previously be obtained by an allocate function of *this.
-              Passing in a memblock object, which was not previously obtained by an allocate function
+        \note The given memory_block object must previously be obtained by an allocate function of *this.
+              Passing in a memory_block object, which was not previously obtained by an allocate function
               of *this leads to undefined behavior.
 
         \note This function is a requirement.
     */
-    void deallocate(memblock block) {
+    void deallocate(memory_block block) {
         if (block.size <= dividing_size)
             return FirstAllocator::deallocate(block);
         else
             return SecondAllocator::deallocate(block);
     }
 
-    /// returns true if the given memblock object denotes memory allocated by *this, false otherwise
+    /// returns true if the given memory_block object denotes memory allocated by *this, false otherwise
     /**
         \note This function is a requirement.
     */
-    bool owns(memblock block) const {
+    bool owns(memory_block block) const {
         if (block.size <= dividing_size)
             return FirstAllocator::owns(block);
         else
             return SecondAllocator::owns(block);
     }
-}
+};
 } // namespace alloc
 
 #endif

@@ -1,10 +1,10 @@
+#pragma once
 #ifndef INCLGUARD_standard_allocator_hpp
-#define INCLGUARD_standard_allocator_hpp
+#    define INCLGUARD_standard_allocator_hpp
 
-#include "memblock.hpp"
-#include <boost/align/aligned_alloc.hpp>
-#include <cassert>
-#include <cstddef>
+#    include "detail_block.hpp"
+#    include <cassert>
+#    include <cstdlib>
 
 namespace alloc {
 class standard_allocator {
@@ -13,26 +13,21 @@ class standard_allocator {
         return size;
     }
 
-    memblock allocate(std::size_t size, std::size_t alignment) {
-        auto* ptr = boost::alignment::aligned_alloc(alignment, size);
-        if (ptr)
+    memory_block allocate(std::size_t size, std::size_t alignment) {
+        auto* ptr = (std::byte*) std::aligned_alloc(alignment, size);
+        if (ptr) {
             return {ptr, size};
-        else
+        } else {
             return {nullptr, 0};
+        }
     }
 
-    // TODO: implement reallocate
-    // void reallocate(memblock& block, std::size_t new_size);
-
-    void deallocate(memblock block) {
+    void deallocate(memory_block block) {
         assert(owns(block));
-        boost::alignment::aligned_free(block.ptr);
+        std::free(block.data);
     }
 
-    /**
-        \note This function always returns true
-    */
-    bool owns(memblock) const noexcept {
+    bool owns(memory_block) const noexcept {
         return true;
     }
 };

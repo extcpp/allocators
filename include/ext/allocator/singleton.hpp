@@ -1,8 +1,8 @@
 #ifndef INCLGUARD_singleton_allocator_hpp
 #define INCLGUARD_singleton_allocator_hpp
 
-#include "allocator_traits.hpp"
-#include "memblock.hpp"
+#include "detail_block.hpp"
+#include "detail_traits.hpp"
 #include <cassert>
 #include <cstddef>
 
@@ -12,7 +12,7 @@ template<typename Derived, typename Allocator, typename = void>
 struct extension_allocate_array {};
 
 template<typename Derived, typename Allocator>
-struct extension_allocate_array<Derived, Allocator, std::enable_if_t<allocator_traits<Allocator>::has_allocate_array>> {
+struct extension_allocate_array<Derived, Allocator, std::enable_if_t<_detail::has_allocate_array_v<Allocator>>> {
     template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t size, std::size_t alignment, std::size_t count, OutItr out_itr) {
@@ -48,32 +48,32 @@ struct singleton_allocator
 
     /// allocates memory of given size and alignment
     /**
-        \return Returns memblock on success, which denotes the memory and size of the allocation,
+        \return Returns memory_block on success, which denotes the memory and size of the allocation,
                 a nullptr and 0 size otherwise.
 
         \note This function is a requirement.
     */
-    memblock allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t size, std::size_t alignment) {
         return instance().allocate(size, alignment);
     }
 
-    /// deallocates the memory denoted by the given memblock
+    /// deallocates the memory denoted by the given memory_block
     /**
-        \note The given memblock object must previously be obtained by an allocate function of *this.
-              Passing in a memblock object, which was not previously obtained by an allocate function
+        \note The given memory_block object must previously be obtained by an allocate function of *this.
+              Passing in a memory_block object, which was not previously obtained by an allocate function
               of *this leads to undefined behavior.
 
         \note This function is a requirement.
     */
-    void deallocate(memblock block) {
+    void deallocate(memory_block block) {
         return instance().deallocate(block);
     }
 
-    /// returns true if the given memblock object denotes memory allocated by *this, false otherwise
+    /// returns true if the given memory_block object denotes memory allocated by *this, false otherwise
     /**
         \note This function is a requirement.
     */
-    bool owns(memblock block) const {
+    bool owns(memory_block block) const {
         return instance().owns(block);
     }
 };

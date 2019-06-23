@@ -1,15 +1,15 @@
 #ifndef INCLGUARD_free_list_allocator_hpp
 #define INCLGUARD_free_list_allocator_hpp
 
-#include "if.hpp"
-#include "memblock.hpp"
+#include "detail_block.hpp"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 namespace alloc {
+#if 0
 // TODO: finish this allocator
-#error unfinished
+#    error unfinished
 
 template<typename ParentAllocator,
          std::size_t ChunkSize,
@@ -30,7 +30,7 @@ class free_list_allocator : ParentAllocator {
         return ((size - 1) / ChunkSize + 1) * ChunkSize;
     }
 
-    memblock allocate(std::size_t size, std::size_t alignment) {
+    memory_block allocate(std::size_t size, std::size_t alignment) {
         if (_head && MinSize <= size && size <= MaxSize && _head) {
             char* ptr = _head;
             std::size_t space = ChunkSize;
@@ -44,20 +44,21 @@ class free_list_allocator : ParentAllocator {
     }
 
     // TODO: implement reallocate
-    // void reallocate(memblock& block, std::size_t new_size);
+    // void reallocate(memory_block& block, std::size_t new_size);
 
-    void deallocate(memblock block) {
+    void deallocate(memory_block block) {
         assert(owns(block));
-        boost::alignment::aligned_free(block.ptr);
+        boost::alignment::aligned_free(block.data);
     }
 
-    bool owns(memblock block) const {
+    bool owns(memory_block block) const {
         return ParentAllocator::owns(block);
     }
 
     private:
     free_block* _head;
 };
+#endif
 } // namespace alloc
 
 #endif
