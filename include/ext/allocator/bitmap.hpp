@@ -66,8 +66,9 @@ class bitmap_allocator : ParentAllocator {
     template<typename OutItr>
     std::tuple<OutItr, bool>
         allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        if (!_block.data)
+        if (!_block.data) {
             init();
+        }
 
         bool success = false;
         if (pattern_length(size) <= 128 && size * count <= num_chunks * chunk_size && 0 < size && _block.data) {

@@ -14,6 +14,10 @@ class standard_allocator {
         return size;
     }
 
+    bool owns(memory_block) const noexcept {
+        return true;
+    }
+
     memory_block allocate(std::size_t alignment, std::size_t size) {
         auto* data = (std::byte*) std::aligned_alloc(alignment, size);
         if (data) {
@@ -26,10 +30,6 @@ class standard_allocator {
     void deallocate(memory_block block) {
         assert(owns(block));
         std::free(block.data);
-    }
-
-    bool owns(memory_block) const noexcept {
-        return true;
     }
 };
 } // namespace alloc

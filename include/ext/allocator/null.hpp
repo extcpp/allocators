@@ -26,10 +26,9 @@ struct null_allocator {
         assert(block.data == nullptr);
     }
 
-
-    bool expand(memory_block&, std::size_t /* new_size */) {
-        return false;
-    }
+    // bool expand(memory_block&, std::size_t /* new_size */) {
+    //    return false;
+    //}
 
     memory_block allocate_all(std::size_t /* alignment */) {
         return {nullptr, 0};

@@ -40,7 +40,11 @@ struct singleton_allocator
         return Allocator::actual_size(alignment, size);
     }
 
-    /// returns the global thread_loacl instance of allocator_t
+    bool owns(memory_block block) const {
+        return instance().owns(block);
+    }
+
+    /// returns the global thread_local instance of allocator_t
     static allocator_t& instance() {
         thread_local static allocator_t a;
         return a;
@@ -52,10 +56,6 @@ struct singleton_allocator
 
     void deallocate(memory_block block) {
         return instance().deallocate(block);
-    }
-
-    bool owns(memory_block block) const {
-        return instance().owns(block);
     }
 };
 } // namespace alloc
