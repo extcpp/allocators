@@ -2,11 +2,12 @@
 #define BOOST_TEST_MODULE memblock
 #include <boost/test/unit_test.hpp>
 
-#include "memblock.hpp"
+#include <ext/allocator/detail_block.hpp>
 
-#include "singleton_allocator.hpp"
+#include <ext/allocator/singleton.hpp>
 #define private public
-#include "blob_allocator.hpp"
+#include <ext/allocator/blob.hpp>
+#include <ext/allocator/stl_wrapper.hpp>
 #undef private
 
 BOOST_AUTO_TEST_CASE(test_deleter) {

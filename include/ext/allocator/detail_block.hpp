@@ -1,7 +1,6 @@
 #pragma once
 #ifndef INCLGUARD_memory_block_hpp
 #    define INCLGUARD_memory_block_hpp
-
 #    include <cstddef>
 
 namespace alloc {

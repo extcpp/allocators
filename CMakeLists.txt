@@ -1,17 +1,30 @@
 # Copyright - 2015-2019 - Jan Christoph Uhde <Jan@UhdeJC.com>
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.14)
 project(extalloc)
 
-if(NOT TARGET extbase)
-    add_subdirectory(external_libs/base EXCLUDE_FROM_ALL)
+function(ext_log)
+    message(STATUS "INFO -- " ${ARGV}) 
+endfunction(ext_log)
+
+if(NOT TARGET ext_shared)
+    ext_log("trying to add ext target") 
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external_libs/libext)
+        ext_log("calling add_subdirectory for libext") 
+        add_subdirectory(external_libs/libext EXCLUDE_FROM_ALL)
+    else()
+        ext_log("libext directory does not exist") 
+    endif()
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/base/cmake/")
+if(NOT TARGET ext_shared)
+    message(FATAL_ERROR "Unable to get target for ext_shared") 
+endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/external_libs/libext/cmake/")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ## OPTIONS
-#option(EXTALLOC_EEXTAMPLES "build examples" OFF)
 option(EXTALLOC_TESTS "build tests" ON)
 option(EXTALLOC_WARNINGS "enable warnings" ON)
 
@@ -20,12 +33,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON) # EXTCode / VS folders
 
+get_target_property(LIBEXT_SOURCE_DIR ext_shared SOURCE_DIR)
 include(ext_cmake_utils)
 ext_setup()
 
-function(ext_log)
-    message(STATUS "INFO -- " ${ARGV}) 
-endfunction(ext_log)
 
 if(UNIX)
     set(EXTALLOC_OUTDIR "")
@@ -40,18 +51,6 @@ elseif(MSVC)
 else()
 endif()
 
-# required by folder structure for EXTCode and VisualStudio (includes)
-# sources are always required
-#include(src_files.cmake)
-#include(include_files.cmake)
-
-#### library setup
-#set(ext_common_private_compile_definitions
-#    $<$<BOOL:${EXTALLOC_CEXTEXT_COMPILER_IS_GCC}>:EXTALLOC_GCC>
-#    $<$<BOOL:${EXTALLOC_CEXTEXT_COMPILER_IS_CLANG}>:EXTALLOC_CLANG>
-#    EXTALLOC_IN_LIB=1
-#)
-
 ### define header only lib
 add_library(extalloc INTERFACE)
 target_include_directories(extalloc INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -65,11 +64,7 @@ target_compile_definitions(extalloc INTERFACE
     EXTALLOC_HEADER_ONLY_LIB
 )
 
-# set up folder structure for EXTCode and VisualStudio
-#set_target_properties (extalloc PROPERTIES FOLDER extalloc)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${libext_header} ${libext_source})
-
-if(EXTALLOC_TESTS)
+if(EXTALLOC_TESTS AND TARGET ext)
     ext_log("extalloc tests enabled")
     include(CTest)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -77,16 +72,3 @@ if(EXTALLOC_TESTS)
 else()
     ext_log("extalloc tests disabled")
 endif()
-
-## add projects using this lib
-if(EXTALLOC_EAMPLES)
-    ext_log("extalloc examples enabled")
-    add_subdirectory(examples)
-else()
-    ext_log("extalloc examples disabled")
-endif()
-
-## installation
-#if(COMMAND ext_install)
-#    ext_install(extalloc "include/ext")
-#endif()

@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #define private public
-#include "blob_allocator.hpp"
+#include <ext/allocator/blob.hpp>
 #undef private
 
 BOOST_AUTO_TEST_CASE(test_allocate) {
@@ -11,11 +11,11 @@ BOOST_AUTO_TEST_CASE(test_allocate) {
 
     auto block = a.allocate(64, 8);
     BOOST_CHECK_EQUAL(block.size, 64);
-    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.ptr) % 8, 0);
+    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.data) % 8, 0);
     BOOST_CHECK_EQUAL(a._allocated, true);
 
     auto block2 = a.allocate(64, 8);
-    BOOST_CHECK(block2.ptr == nullptr);
+    BOOST_CHECK(block2.data == nullptr);
     BOOST_CHECK_EQUAL(block2.size, 0);
     BOOST_CHECK_EQUAL(a._allocated, true);
 
@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(test_allocate) {
 
     block = a.allocate(64, 8);
     BOOST_CHECK_EQUAL(block.size, 64);
-    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.ptr) % 8, 0);
+    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.data) % 8, 0);
     BOOST_CHECK_EQUAL(a._allocated, true);
 
     a.deallocate(block);

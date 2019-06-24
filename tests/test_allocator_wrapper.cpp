@@ -3,17 +3,19 @@
 #include <boost/test/unit_test.hpp>
 
 #define private public
-#include <ext/allocator/allocator_wrapper.hpp>
+#include <ext/allocator/stl_wrapper.hpp>
 #undef private
 
-#include "bitmap_allocator.hpp"
-#include "blob_allocator.hpp"
+#include <ext/allocator/bitmap.hpp>
+#include <ext/allocator/blob.hpp>
+
+using namespace alloc;
 
 namespace test {
 struct dummy_allocator {
     dummy_allocator() : allocated{false} {}
 
-    alloc::memblock allocate(std::size_t size, std::size_t /* alignment */) {
+    memory_block allocate(std::size_t /*aligenment*/, std::size_t size) {
         if (size <= 64 && allocated == false) {
             allocated = true;
             return {data, size};
@@ -21,18 +23,18 @@ struct dummy_allocator {
             return {nullptr, 0};
     }
 
-    void deallocate(alloc::memblock block) {
+    void deallocate(memory_block block) {
         if (owns(block))
             allocated = false;
         else
             throw std::runtime_error{"bad block"};
     }
 
-    bool owns(alloc::memblock block) {
-        return block.ptr == data && block.size <= 64;
+    bool owns(memory_block block) {
+        return block.data == data && block.size <= 64;
     }
 
-    char data[64];
+    std::byte data[64];
     bool allocated;
 };
 } // namespace test
@@ -72,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_functions) {
     {
         auto* ptr = w.allocate(1);
         char* cptr = reinterpret_cast<char*>(ptr);
-        BOOST_CHECK_EQUAL(cptr, a.data + sizeof(alloc::memblock::size_t));
+        BOOST_CHECK_EQUAL(cptr, a.data + sizeof(std::size_t));
         BOOST_CHECK_EQUAL(a.allocated, true);
 
         w.deallocate(ptr, 1);
@@ -88,13 +90,13 @@ BOOST_AUTO_TEST_CASE(test_std_functionality) {
 
     auto* ptr = w.allocate(1);
 
-    auto* block_ptr = reinterpret_cast<char*>(ptr) - std::max(sizeof(alloc::memblock::size_t), alignof(int));
-    BOOST_CHECK_GE(reinterpret_cast<char*>(block_ptr), reinterpret_cast<char*>(&a));
+    auto* block_ptr = reinterpret_cast<std::byte*>(ptr) - std::max(sizeof(size_t), alignof(int));
+    BOOST_CHECK_GE(reinterpret_cast<std::byte*>(block_ptr), reinterpret_cast<char*>(&a));
 
     auto block_size = *reinterpret_cast<std::size_t*>(block_ptr);
     BOOST_CHECK_GE(block_size, sizeof(int));
 
-    alloc::memblock block{block_ptr, block_size};
+    memory_block block{block_ptr, block_size};
     BOOST_CHECK(a.owns(block));
 
     w.deallocate(ptr, 1);
