@@ -3,11 +3,11 @@
 #include <boost/test/unit_test.hpp>
 
 #define private public
-#include <ext/allocator/stl_wrapper.hpp>
+#include <ext/allocators/stl_wrapper.hpp>
 #undef private
 
-#include <ext/allocator/bitmap.hpp>
-#include <ext/allocator/blob.hpp>
+#include <ext/allocators/bitmap.hpp>
+#include <ext/allocators/blob.hpp>
 
 using namespace alloc;
 

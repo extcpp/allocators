@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #define private public
-#include <ext/allocator/blob.hpp>
+#include <ext/allocators/blob.hpp>
 #undef private
 
 BOOST_AUTO_TEST_CASE(test_allocate) {

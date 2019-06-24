@@ -2,9 +2,9 @@
 #define BOOST_TEST_MODULE bitmap_allocator
 #include <boost/test/unit_test.hpp>
 
-#include <ext/allocator/blob.hpp>
+#include <ext/allocators/blob.hpp>
 #define private public //geil!!! ballern!!
-#include <ext/allocator/bitmap.hpp>
+#include <ext/allocators/bitmap.hpp>
 #undef private
 
 BOOST_AUTO_TEST_CASE(test_allocate) {
