@@ -1,6 +1,4 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE allocator_wrapper
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 #define private public
 #include <ext/allocators/stl_wrapper.hpp>
@@ -39,70 +37,70 @@ struct dummy_allocator {
 };
 } // namespace test
 
-BOOST_AUTO_TEST_CASE(test_functions) {
+TEST(wrapper, test_functions) {
     test::dummy_allocator a;
-    alloc::allocator_wrapper<int, test::dummy_allocator> w{&a};
+    alloc::allocator_wrapper<int, test::dummy_allocator, std::max(alignof(int),alignof(double))> w{&a};
 
     {
-        alloc::allocator_wrapper<int, test::dummy_allocator> other = w;
-        BOOST_CHECK_EQUAL(other._allocator, &a);
+        alloc::allocator_wrapper<int, test::dummy_allocator, 8> other = decltype(w)::rebind<int>::other(w);
+        EXPECT_EQ(other._allocator, &a);
     }
 
     {
-        alloc::allocator_wrapper<double, test::dummy_allocator> other = w;
-        BOOST_CHECK_EQUAL(other._allocator, &a);
+        alloc::allocator_wrapper<double, test::dummy_allocator> other = decltype(w)::rebind<double>::other(w);
+        EXPECT_EQ(other._allocator, &a);
     }
 
     {
         alloc::allocator_wrapper<int, test::dummy_allocator> other(nullptr);
-        BOOST_CHECK_EQUAL(other == w, false);
+        EXPECT_EQ(other == w, false);
 
         other = w;
-        BOOST_CHECK_EQUAL(other._allocator, &a);
-        BOOST_CHECK_EQUAL(other == w, true);
+        EXPECT_EQ(other._allocator, &a);
+        EXPECT_EQ(other == w, true);
     }
 
     {
         alloc::allocator_wrapper<double, test::dummy_allocator> other(nullptr);
-        BOOST_CHECK_EQUAL(other == w, false);
+        EXPECT_EQ(other == w, false);
 
         other = w;
-        BOOST_CHECK_EQUAL(other._allocator, &a);
-        BOOST_CHECK_EQUAL(other == w, true);
+        EXPECT_EQ(other._allocator, &a);
+        EXPECT_EQ(other == w, true);
     }
 
     {
         auto* ptr = w.allocate(1);
         char* cptr = reinterpret_cast<char*>(ptr);
-        BOOST_CHECK_EQUAL(cptr, a.data + sizeof(std::size_t));
-        BOOST_CHECK_EQUAL(a.allocated, true);
+        EXPECT_EQ(cptr, a.data + sizeof(std::size_t));
+        EXPECT_EQ(a.allocated, true);
 
         w.deallocate(ptr, 1);
-        BOOST_CHECK_EQUAL(a.allocated, false);
+        EXPECT_EQ(a.allocated, false);
     }
 
-    { BOOST_CHECK_THROW(w.allocate(65), std::bad_alloc); }
+    { EXPECT_THROW(w.allocate(65), std::bad_alloc); }
 }
 
-BOOST_AUTO_TEST_CASE(test_std_functionality) {
+TEST(wrapper, test_std_functionality) {
     alloc::blob_allocator<64, 8> a;
     alloc::allocator_wrapper<int, alloc::blob_allocator<64, 8>> w(&a);
 
     auto* ptr = w.allocate(1);
 
     auto* block_ptr = reinterpret_cast<std::byte*>(ptr) - std::max(sizeof(size_t), alignof(int));
-    BOOST_CHECK_GE(reinterpret_cast<std::byte*>(block_ptr), reinterpret_cast<char*>(&a));
+    EXPECT_GE(reinterpret_cast<std::byte*>(block_ptr), reinterpret_cast<char*>(&a));
 
     auto block_size = *reinterpret_cast<std::size_t*>(block_ptr);
-    BOOST_CHECK_GE(block_size, sizeof(int));
+    EXPECT_GE(block_size, sizeof(int));
 
     memory_block block{block_ptr, block_size};
-    BOOST_CHECK(a.owns(block));
+    EXPECT_TRUE(a.owns(block));
 
     w.deallocate(ptr, 1);
 }
 
-BOOST_AUTO_TEST_CASE(test_vector_allocator) {
+TEST(wrapper, test_vector_allocator) {
     using A = alloc::bitmap_allocator<alloc::blob_allocator<128, 8>, 4, 32, 4>;
     using W = alloc::allocator_wrapper<int, A>;
 
@@ -118,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_vector_allocator) {
         vec.push_back(4);
         vec.push_back(5);
 
-        BOOST_CHECK_LE(reinterpret_cast<char*>(&a), reinterpret_cast<char*>(&vec[0]));
-        BOOST_CHECK_GE(reinterpret_cast<char*>(&a) + sizeof(a), reinterpret_cast<char*>(&vec[0]));
+        EXPECT_LE(reinterpret_cast<char*>(&a), reinterpret_cast<char*>(&vec[0]));
+        EXPECT_GE(reinterpret_cast<char*>(&a) + sizeof(a), reinterpret_cast<char*>(&vec[0]));
     }
 }

@@ -6,7 +6,7 @@
 namespace alloc {
 struct memory_block {
     memory_block() noexcept = default;
-    memory_block(std::byte* data, std::size_t size) : data{data}, size{size} {}
+    memory_block(std::byte* data_, std::size_t size_) : data{data_}, size{size_} {}
     memory_block(std::nullptr_t) : data(nullptr), size{0} {}
 
     explicit operator bool() {

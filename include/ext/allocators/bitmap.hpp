@@ -47,8 +47,8 @@ class bitmap_allocator : ParentAllocator {
     }
 
     bool owns(memory_block block) const noexcept {
-        return reinterpret_cast<char*>(block.data) >= _block.data &&
-               reinterpret_cast<char*>(block.data) + block.size <= reinterpret_cast<char*>(_block.data) + _block.size;
+        return reinterpret_cast<std::byte*>(block.data) >= _block.data &&
+               reinterpret_cast<std::byte*>(block.data) + block.size <= reinterpret_cast<std::byte*>(_block.data) + _block.size;
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {

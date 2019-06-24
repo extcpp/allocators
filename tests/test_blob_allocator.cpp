@@ -1,32 +1,30 @@
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE blob_allocator
-#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 
 #define private public
 #include <ext/allocators/blob.hpp>
 #undef private
 
-BOOST_AUTO_TEST_CASE(test_allocate) {
+TEST(blob, test_allocate) {
     alloc::blob_allocator<64, 8> a;
 
     auto block = a.allocate(64, 8);
-    BOOST_CHECK_EQUAL(block.size, 64);
-    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.data) % 8, 0);
-    BOOST_CHECK_EQUAL(a._allocated, true);
+    EXPECT_EQ(block.size, 64);
+    EXPECT_EQ(reinterpret_cast<intptr_t>(block.data) % 8, 0);
+    EXPECT_EQ(a._allocated, true);
 
     auto block2 = a.allocate(64, 8);
-    BOOST_CHECK(block2.data == nullptr);
-    BOOST_CHECK_EQUAL(block2.size, 0);
-    BOOST_CHECK_EQUAL(a._allocated, true);
+    EXPECT_TRUE(block2.data == nullptr);
+    EXPECT_EQ(block2.size, 0);
+    EXPECT_EQ(a._allocated, true);
 
     a.deallocate(block);
-    BOOST_CHECK_EQUAL(a._allocated, false);
+    EXPECT_EQ(a._allocated, false);
 
     block = a.allocate(64, 8);
-    BOOST_CHECK_EQUAL(block.size, 64);
-    BOOST_CHECK_EQUAL(reinterpret_cast<intptr_t>(block.data) % 8, 0);
-    BOOST_CHECK_EQUAL(a._allocated, true);
+    EXPECT_EQ(block.size, 64);
+    EXPECT_EQ(reinterpret_cast<intptr_t>(block.data) % 8, 0);
+    EXPECT_EQ(a._allocated, true);
 
     a.deallocate(block);
-    BOOST_CHECK_EQUAL(a._allocated, false);
+    EXPECT_EQ(a._allocated, false);
 }
