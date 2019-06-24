@@ -3,7 +3,7 @@
 #include <boost/test/unit_test.hpp>
 
 #define private public
-#include "allocator_wrapper.hpp"
+#include <ext/allocator/allocator_wrapper.hpp>
 #undef private
 
 #include "bitmap_allocator.hpp"
