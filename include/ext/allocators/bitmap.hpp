@@ -7,7 +7,7 @@
 #include <tuple>
 
 namespace alloc {
-template<typename ParentAllocator, std::size_t ChunkSize, std::size_t NumChunks, std::size_t Alignment>
+template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
 class bitmap_allocator : ParentAllocator {
     public:
     static_assert(NumChunks > 0, "NumChunks must be greater than 0");
@@ -47,8 +47,7 @@ class bitmap_allocator : ParentAllocator {
     }
 
     bool owns(memory_block block) const noexcept {
-        return reinterpret_cast<std::byte*>(block.data) >= _block.data &&
-               reinterpret_cast<std::byte*>(block.data) + block.size <= reinterpret_cast<std::byte*>(_block.data) + _block.size;
+        return block.data >= _block.data && block.data + block.size <= _block.data + _block.size;
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {
@@ -59,7 +58,9 @@ class bitmap_allocator : ParentAllocator {
 
     void deallocate(memory_block block) noexcept {
         assert(owns(block));
-        std::size_t pos = (reinterpret_cast<char*>(block.data) - reinterpret_cast<char*>(_block.data)) / chunk_size;
+        auto diff = (block.data - _block.data);
+        assert(diff >= 0);
+        std::size_t pos = static_cast<std::size_t>(diff) / chunk_size;
         _free_blocks[free_blocks_index(block.size)] |= pattern(pattern_length(block.size)) << pattern_shift(pos);
     }
 
@@ -106,7 +107,7 @@ class bitmap_allocator : ParentAllocator {
 
     private:
     void init() {
-        _block = ParentAllocator::allocate(chunk_size * num_chunks, memory_alignment);
+        _block = ParentAllocator::allocate(memory_alignment, chunk_size * num_chunks);
         std::fill(_free_blocks, _free_blocks + free_blocks_size - 1, ~std::uint64_t{0});
 
         auto remaining = num_chunks - 64 * (free_blocks_size - 1);
@@ -119,8 +120,9 @@ class bitmap_allocator : ParentAllocator {
 
     bool check_position(std::size_t pos, std::size_t length, std::size_t alignment) const noexcept {
         // check alignment of position
-        if (((reinterpret_cast<intptr_t>(_block.data) + pos * chunk_size) & (alignment - 1)) != 0)
+        if (((reinterpret_cast<intptr_t>(_block.data) + intptr_t(pos * chunk_size)) & intptr_t(alignment - 1)) != 0) {
             return false;
+        }
 
         std::size_t index = free_blocks_index(pos);
         std::size_t shift = pattern_shift(pos);

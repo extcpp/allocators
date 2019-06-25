@@ -84,11 +84,12 @@ bool operator!=(const allocator_wrapper<T_, Allocator_>& lhs, const allocator_wr
     return !(lhs == rhs);
 }
 
+
 struct deleter_options {
     enum { divergent_size = 0b01, local = 0b10 };
 };
 
-#if 0
+#if 1
 template<typename Allocator, int Options = 0>
 struct deleter {
     using allocator_t = Allocator;
@@ -100,7 +101,7 @@ struct deleter {
 
         if (ptr) {
             ptr->~T();
-            allocator_t::instance().deallocate(memory_block.data, sizeof(T));
+            allocator_t::instance().deallocate(memory_block{reinterpret_cast<std::byte*>(ptr), sizeof(T)});
         }
     }
 };
@@ -116,7 +117,7 @@ struct deleter<Allocator, deleter_options::local> {
 
         if (ptr) {
             ptr->~Type();
-            //            allocator->deallocate(memory_block.data, sizeof(Type));
+            allocator->deallocate(memory_block{reinterpret_cast<std::byte*>(ptr), sizeof(Type)});
         }
     }
 
@@ -131,7 +132,7 @@ struct deleter<Allocator, deleter_options::divergent_size> {
     void operator()(Type* ptr) const {
         if (ptr) {
             ptr->~Type();
-            //            allocator_t::instance().deallocate(memory_block.data, size);
+            allocator_t::instance().deallocate(memory_block{reinterpret_cast<std::byte*>(ptr), size});
         }
     }
 
@@ -146,7 +147,7 @@ struct deleter<Allocator, deleter_options::divergent_size | deleter_options::loc
     void operator()(Type* ptr) const {
         if (ptr) {
             ptr->~Type();
-            //           allocator->deallocate(memory_block.data, size);
+            allocator->deallocate(memory_block{reinterpret_cast<std::byte*>(ptr), size});
         }
     }
 
@@ -158,36 +159,36 @@ struct deleter<Allocator, deleter_options::divergent_size | deleter_options::loc
 /// returns a unique_ptr holding the given type created with a global instance of Allocator
 template<typename Type, typename Allocator, typename... Args>
 auto make_unique(std::nullptr_t, Args&&... args)
-    -> std::enable_if_t<Allocator::actual_size(sizeof(Type), alignof(Type)) == sizeof(Type),
+    -> std::enable_if_t<Allocator::actual_size(alignof(Type), sizeof(Type)) == sizeof(Type),
                         std::unique_ptr<Type, deleter<Allocator>>> {
-    auto block = Allocator::instance().allocate(sizeof(Type), alignof(Type));
+    auto block = Allocator::instance().allocate(alignof(Type), sizeof(Type));
     return std::unique_ptr<Type, deleter<Allocator>>{new (block.data) Type{std::forward<Args>(args)...}};
 }
 
 /// returns a unique_ptr holding the given type created with a global instance of Allocator
 template<typename Type, typename Allocator, typename... Args>
 auto make_unique(std::nullptr_t, Args&&... args)
-    -> std::enable_if_t<Allocator::actual_size(sizeof(Type), alignof(Type)) != sizeof(Type),
+    -> std::enable_if_t<Allocator::actual_size(alignof(Type), sizeof(Type)) != sizeof(Type),
                         std::unique_ptr<Type, deleter<Allocator, deleter_options::divergent_size>>> {
-    auto block = Allocator::instance().allocate(sizeof(Type), alignof(Type));
+    auto block = Allocator::instance().allocate(alignof(Type), sizeof(Type));
     return {new (block.data) Type{std::forward<Args>(args)...}, {block.size}};
 }
 
 /// returns a unique_ptr holding the given type created with the given allocator
 template<typename Type, typename Allocator, typename... Args>
 auto make_unique(Allocator* a, Args&&... args)
-    -> std::enable_if_t<Allocator::actual_size(sizeof(Type), alignof(Type)) == sizeof(Type),
+    -> std::enable_if_t<Allocator::actual_size(alignof(Type), sizeof(Type)) == sizeof(Type),
                         std::unique_ptr<Type, deleter<Allocator, deleter_options::local>>> {
-    auto block = a->allocate(sizeof(Type), alignof(Type));
+    auto block = a->allocate(alignof(Type), sizeof(Type));
     return {new (block.data) Type{std::forward<Args>(args)...}, {a}};
 }
 
 /// returns a unique_ptr holding the given type created with the given allocator
 template<typename Type, typename Allocator, typename... Args>
 auto make_unique(Allocator* a, Args&&... args) -> std::enable_if_t<
-    Allocator::actual_size(sizeof(Type), alignof(Type)) != sizeof(Type),
+    Allocator::actual_size(alignof(Type), sizeof(Type)) != sizeof(Type),
     std::unique_ptr<Type, deleter<Allocator, deleter_options::divergent_size | deleter_options::local>>> {
-    auto block = a->allocate(sizeof(Type), alignof(Type));
+    auto block = a->allocate(alignof(Type), sizeof(Type));
     return {new (block.data) Type{std::forward<Args>(args)...}, {a, block.size}};
 }
 

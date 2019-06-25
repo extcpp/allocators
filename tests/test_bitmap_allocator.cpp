@@ -2,21 +2,26 @@
 
 #include <ext/allocators/blob.hpp>
 
-#define private public //geil!!! ballern!!
+#define private public // geil!!! ballern!!
 #include <ext/allocators/bitmap.hpp>
 #undef private
 
 TEST(bitmap, test_allocate) {
-    alloc::bitmap_allocator<alloc::blob_allocator<64, 8>, 4, 16, 8> a;
+    constexpr std::size_t alignment = 8;
+    constexpr std::size_t size = 64;
+    constexpr std::size_t chunk_size = 4;
+    constexpr std::size_t num_chunks = 16;
+
+    alloc::bitmap_allocator<alloc::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks> a;
     EXPECT_TRUE(a._block.data == nullptr);
     EXPECT_EQ(a._block.size, 0);
 
-    auto block = a.allocate(32, 8);
+    auto block = a.allocate(alignment, 32);
     EXPECT_EQ(block.size, 32);
-    EXPECT_EQ(reinterpret_cast<intptr_t>(block.data) % 8, 0);
+    EXPECT_EQ(reinterpret_cast<std::uintptr_t>(block.data) % alignment, 0);
     EXPECT_EQ(a._free_blocks[0], 0xff00);
 
-    auto block2 = a.allocate(32, 8);
+    auto block2 = a.allocate(alignment, 32);
     EXPECT_EQ(block2.size, 32);
     EXPECT_TRUE(block2.data != block.data);
     EXPECT_EQ(a._free_blocks[0], 0x0);
@@ -29,12 +34,17 @@ TEST(bitmap, test_allocate) {
 }
 
 TEST(bitmap, test_split_pattern) {
-    alloc::bitmap_allocator<alloc::blob_allocator<120, 1>, 1, 120, 1> a;
-    auto block1 = a.allocate(62, 1);
+    constexpr std::size_t alignment = 1;
+    constexpr std::size_t size = 120;
+    constexpr std::size_t chunk_size = 1;
+    constexpr std::size_t num_chunks = 120;
+
+    alloc::bitmap_allocator<alloc::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks> a;
+    auto block1 = a.allocate(alignment, 62);
     EXPECT_EQ(a._free_blocks[0], 0xc000000000000000);
     EXPECT_EQ(a._free_blocks[1], 0x00ffffffffffffff);
 
-    auto block2 = a.allocate(4, 1);
+    auto block2 = a.allocate(alignment, 4);
     EXPECT_EQ(a._free_blocks[0], 0x0000000000000000);
     EXPECT_EQ(a._free_blocks[1], 0x00fffffffffffffc);
 
@@ -54,8 +64,8 @@ TEST(bitmap, test_rejected_sizes) {
 }
 
 TEST(bitmap, test_chunk_alignment) {
-    alloc::bitmap_allocator<alloc::blob_allocator<128, 8>, 1, 128, 8> a;
-    auto block1 = a.allocate(4, 1);
+    alloc::bitmap_allocator<alloc::blob_allocator<8, 128>, 8, 1, 128> a;
+    auto block1 = a.allocate(1, 4);
     EXPECT_TRUE(block1.data != nullptr);
     EXPECT_EQ(a._free_blocks[0], 0xfffffffffffffff0);
     EXPECT_EQ(a._free_blocks[1], 0xffffffffffffffff);

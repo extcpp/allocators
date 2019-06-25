@@ -7,7 +7,7 @@
 #include <cstddef>
 
 namespace alloc {
-template<std::size_t MemorySize, std::size_t Alignment>
+template<std::size_t Alignment, std::size_t MemorySize>
 class alignas(Alignment) blob_allocator {
     public:
     static constexpr std::size_t memory_size = MemorySize;
@@ -17,12 +17,12 @@ class alignas(Alignment) blob_allocator {
     blob_allocator(blob_allocator const&) = delete;
     blob_allocator(blob_allocator&&) = delete;
 
-    static constexpr std::size_t actual_size(std::size_t size, std::size_t alignment) noexcept {
+    static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
         return size <= memory_size && alignment <= memory_alignment ? memory_size : 0;
     }
 
     bool owns(memory_block block) const noexcept {
-        return block.data >= _data && reinterpret_cast<char*>(block.data) + block.size <= _data + memory_size;
+        return block.data >= _data && block.data + block.size <= _data + memory_size;
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) noexcept {
@@ -55,7 +55,7 @@ class alignas(Alignment) blob_allocator {
     }
 
     private:
-    char _data[memory_size];
+    std::byte _data[memory_size];
     bool _allocated;
 };
 } // namespace alloc

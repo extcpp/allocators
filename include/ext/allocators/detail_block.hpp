@@ -17,11 +17,11 @@ struct memory_block {
     std::size_t size;
 };
 
-bool operator==(memory_block lhs, memory_block rhs) {
+inline bool operator==(memory_block lhs, memory_block rhs) {
     return lhs.data == rhs.data && lhs.size == rhs.size;
 }
 
-bool operator!=(memory_block lhs, memory_block rhs) {
+inline bool operator!=(memory_block lhs, memory_block rhs) {
     return !(lhs == rhs);
 }
 

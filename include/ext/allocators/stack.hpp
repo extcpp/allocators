@@ -12,7 +12,7 @@ namespace alloc {
     \note This allocator does not accept alignment requests greater than memory_alignment to
           keep deallocation consistent.
 */
-template<typename ParentAllocator, std::size_t MemorySize, std::size_t Alignment>
+template<typename ParentAllocator, std::size_t Alignment, std::size_t MemorySize>
 class stack_allocator : ParentAllocator {
     public:
     static constexpr std::size_t memory_size = MemorySize;

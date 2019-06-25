@@ -15,8 +15,7 @@ TEST(block, test_deleter) {
         auto up = alloc::make_unique<int, allocator_t>(nullptr, 42);
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
-        EXPECT((std::is_same<deleter_t, alloc::deleter<allocator_t>>::value));
-
+        EXPECT_TRUE((std::is_same<deleter_t, alloc::deleter<allocator_t>>::value));
         EXPECT_EQ(*up, 42);
         EXPECT_EQ(sizeof(up), sizeof(void*));
         EXPECT_EQ(reinterpret_cast<void*>(up.get()), reinterpret_cast<void*>(allocator_t::instance()._data));
@@ -25,14 +24,14 @@ TEST(block, test_deleter) {
     EXPECT_EQ(allocator_t::instance()._allocated, false);
 }
 
-TEST(blokc, test_deleter_divergent_size) {
-    using allocator_t = alloc::singleton_allocator<alloc::blob_allocator<64, 4>>;
+TEST(block, test_deleter_divergent_size) {
+    using allocator_t = alloc::singleton_allocator<alloc::blob_allocator<4, 64>>;
 
     {
         auto up = alloc::make_unique<int, allocator_t>(nullptr, 42);
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
-        EXPECT(
+        EXPECT_TRUE(
             (std::is_same<deleter_t, alloc::deleter<allocator_t, alloc::deleter_options::divergent_size>>::value));
 
         EXPECT_EQ(*up, 42);
@@ -51,7 +50,7 @@ TEST(block, test_deleter_local) {
         auto up = alloc::make_unique<int>(&a, 42);
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
-        EXPECT((std::is_same<deleter_t, alloc::deleter<allocator_t, alloc::deleter_options::local>>::value));
+        EXPECT_TRUE((std::is_same<deleter_t, alloc::deleter<allocator_t, alloc::deleter_options::local>>::value));
 
         EXPECT_EQ(*up, 42);
         EXPECT_EQ(sizeof(up), sizeof(void*) * 2);
@@ -62,14 +61,14 @@ TEST(block, test_deleter_local) {
 }
 
 TEST(block, test_deleter_divsize_local) {
-    using allocator_t = alloc::blob_allocator<64, 4>;
+    using allocator_t = alloc::blob_allocator<4, 64>;
 
     allocator_t a;
     {
         auto up = alloc::make_unique<int>(&a, 42);
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
-        EXPECT((std::is_same<
+        EXPECT_TRUE((std::is_same<
                      deleter_t,
                      alloc::deleter<allocator_t,
                                     alloc::deleter_options::divergent_size | alloc::deleter_options::local>>::value));
