@@ -5,7 +5,7 @@
 #include "detail_traits.hpp"
 #include <type_traits>
 
-namespace alloc {
+namespace ext::allocoators {
 namespace _detail_size_segregator {
 template<typename Derived,
          typename FirstAllocator,
@@ -80,6 +80,6 @@ struct size_segregator
         }
     }
 };
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif

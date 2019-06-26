@@ -5,7 +5,7 @@
 #undef private
 
 TEST(blob, test_allocate) {
-    alloc::blob_allocator<8, 64> a;
+    ext::allocoators::blob_allocator<8, 64> a;
 
     auto block = a.allocate(8, 64);
     EXPECT_EQ(block.size, 64);

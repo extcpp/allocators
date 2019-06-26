@@ -12,7 +12,9 @@ TEST(bitmap, test_allocate) {
     constexpr std::size_t chunk_size = 4;
     constexpr std::size_t num_chunks = 16;
 
-    alloc::bitmap_allocator<alloc::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks> a;
+    ext::allocoators::
+        bitmap_allocator<ext::allocoators::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks>
+            a;
     EXPECT_TRUE(a._block.data == nullptr);
     EXPECT_EQ(a._block.size, 0);
 
@@ -39,7 +41,9 @@ TEST(bitmap, test_split_pattern) {
     constexpr std::size_t chunk_size = 1;
     constexpr std::size_t num_chunks = 120;
 
-    alloc::bitmap_allocator<alloc::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks> a;
+    ext::allocoators::
+        bitmap_allocator<ext::allocoators::blob_allocator<alignment, size>, alignment, chunk_size, num_chunks>
+            a;
     auto block1 = a.allocate(alignment, 62);
     EXPECT_EQ(a._free_blocks[0], 0xc000000000000000);
     EXPECT_EQ(a._free_blocks[1], 0x00ffffffffffffff);
@@ -53,7 +57,7 @@ TEST(bitmap, test_split_pattern) {
 }
 
 TEST(bitmap, test_rejected_sizes) {
-    alloc::bitmap_allocator<alloc::blob_allocator<256, 1>, 1, 256, 1> a;
+    ext::allocoators::bitmap_allocator<ext::allocoators::blob_allocator<256, 1>, 1, 256, 1> a;
     auto block = a.allocate(129, 1);
     EXPECT_TRUE(block.data == nullptr);
     EXPECT_EQ(block.size, 0);
@@ -64,7 +68,7 @@ TEST(bitmap, test_rejected_sizes) {
 }
 
 TEST(bitmap, test_chunk_alignment) {
-    alloc::bitmap_allocator<alloc::blob_allocator<8, 128>, 8, 1, 128> a;
+    ext::allocoators::bitmap_allocator<ext::allocoators::blob_allocator<8, 128>, 8, 1, 128> a;
     auto block1 = a.allocate(1, 4);
     EXPECT_TRUE(block1.data != nullptr);
     EXPECT_EQ(a._free_blocks[0], 0xfffffffffffffff0);

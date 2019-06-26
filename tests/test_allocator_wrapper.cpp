@@ -7,7 +7,7 @@
 #include <ext/allocators/bitmap.hpp>
 #include <ext/allocators/blob.hpp>
 
-using namespace alloc;
+using namespace ext::allocoators;
 
 namespace test {
 struct dummy_allocator {
@@ -39,20 +39,21 @@ struct dummy_allocator {
 
 TEST(wrapper, test_functions) {
     test::dummy_allocator a;
-    alloc::allocator_wrapper<int, test::dummy_allocator, std::max(alignof(int), alignof(double))> w{&a};
+    ext::allocoators::allocator_wrapper<int, test::dummy_allocator, std::max(alignof(int), alignof(double))> w{&a};
 
     {
-        alloc::allocator_wrapper<int, test::dummy_allocator, 8> other = decltype(w)::rebind<int>::other(w);
+        ext::allocoators::allocator_wrapper<int, test::dummy_allocator, 8> other = decltype(w)::rebind<int>::other(w);
         EXPECT_EQ(other._allocator, &a);
     }
 
     {
-        alloc::allocator_wrapper<double, test::dummy_allocator> other = decltype(w)::rebind<double>::other(w);
+        ext::allocoators::allocator_wrapper<double, test::dummy_allocator> other =
+            decltype(w)::rebind<double>::other(w);
         EXPECT_EQ(other._allocator, &a);
     }
 
     {
-        alloc::allocator_wrapper<int, test::dummy_allocator, 8> other(nullptr);
+        ext::allocoators::allocator_wrapper<int, test::dummy_allocator, 8> other(nullptr);
         //        EXPECT_EQ(other == w, false);
 
         other = w;
@@ -61,7 +62,7 @@ TEST(wrapper, test_functions) {
     }
 
     {
-        alloc::allocator_wrapper<double, test::dummy_allocator> other(nullptr);
+        ext::allocoators::allocator_wrapper<double, test::dummy_allocator> other(nullptr);
         //       EXPECT_EQ(other == w, false);
 
         other = w;
@@ -83,8 +84,8 @@ TEST(wrapper, test_functions) {
 }
 
 TEST(wrapper, test_std_functionality) {
-    alloc::blob_allocator<8, 64> a;
-    alloc::allocator_wrapper<int, alloc::blob_allocator<8, 64>> w(&a);
+    ext::allocoators::blob_allocator<8, 64> a;
+    ext::allocoators::allocator_wrapper<int, ext::allocoators::blob_allocator<8, 64>> w(&a);
 
     auto* ptr = w.allocate(1);
 
@@ -101,8 +102,8 @@ TEST(wrapper, test_std_functionality) {
 }
 
 TEST(wrapper, test_vector_allocator) {
-    using A = alloc::bitmap_allocator<alloc::blob_allocator<8, 128>, 4, 32, 4>;
-    using W = alloc::allocator_wrapper<int, A>;
+    using A = ext::allocoators::bitmap_allocator<ext::allocoators::blob_allocator<8, 128>, 4, 32, 4>;
+    using W = ext::allocoators::allocator_wrapper<int, A>;
 
     A a;
     W w(&a);

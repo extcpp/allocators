@@ -3,10 +3,10 @@
 
 #include "detail_block.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <tuple>
-#include <array>
-#include <algorithm>
 
 namespace ext::allocoators {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
@@ -156,7 +156,7 @@ class bitmap_allocator : ParentAllocator {
 
     private:
     memory_block _block; // internal allocation made by ParentAllocator
-    std::array<std::uint64_t,free_blocks_size>  _free_blocks;
+    std::array<std::uint64_t, free_blocks_size> _free_blocks;
 };
 } // namespace ext::allocoators
 

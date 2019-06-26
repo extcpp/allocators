@@ -6,7 +6,7 @@
 #include <cassert>
 //#include <cstddef>
 
-namespace alloc {
+namespace ext::allocoators {
 /// allocates memory in a stack like manner
 /**
     \note This allocator does not accept alignment requests greater than memory_alignment to
@@ -104,6 +104,6 @@ class stack_allocator : ParentAllocator {
     char* _cur;
     char* _end;
 };
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif

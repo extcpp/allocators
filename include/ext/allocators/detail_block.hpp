@@ -3,7 +3,7 @@
 #    define INCLGUARD_memory_block_hpp
 #    include <cstddef>
 
-namespace alloc {
+namespace ext::allocoators {
 struct memory_block {
     memory_block() noexcept = default;
     memory_block(std::byte* data_, std::size_t size_) : data{data_}, size{size_} {}
@@ -25,6 +25,6 @@ inline bool operator!=(memory_block lhs, memory_block rhs) {
     return !(lhs == rhs);
 }
 
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif

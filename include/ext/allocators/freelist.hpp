@@ -6,10 +6,10 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace alloc {
+namespace ext::allocoators {
 #if 0
 // TODO: finish this allocator
-#    error unfinished
+//#    error unfinished
 
 template<typename ParentAllocator,
          std::size_t ChunkSize,
@@ -59,6 +59,6 @@ class free_list_allocator : ParentAllocator {
     free_block* _head;
 };
 #endif
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif

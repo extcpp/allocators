@@ -5,8 +5,8 @@
 #include "detail_traits.hpp"
 #include <type_traits>
 
-namespace alloc {
-namespace _detail_alignment_segregator {
+namespace ext::allocoators {
+namespace _detail {
 template<typename Derived,
          typename FirstAllocator,
          typename SecondAllocator,
@@ -32,11 +32,11 @@ struct extension_allocate_array<
         }
     }
 };
-} // namespace _detail_alignment_segregator
+} // namespace _detail
 
 template<typename FirstAllocator, typename SecondAllocator, std::size_t AlignmentLessOrEqual>
 struct alignment_segregator
-    : public _detail_alignment_segregator::extension_allocate_array<
+    : public _detail::extension_allocate_array<
           alignment_segregator<FirstAllocator, SecondAllocator, AlignmentLessOrEqual>,
           FirstAllocator,
           SecondAllocator,
@@ -76,6 +76,6 @@ struct alignment_segregator
         }
     }
 };
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif
