@@ -5,8 +5,10 @@
 
 #include <cassert>
 #include <tuple>
+#include <array>
+#include <algorithm>
 
-namespace alloc {
+namespace ext::allocoators {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
 class bitmap_allocator : ParentAllocator {
     public:
@@ -24,21 +26,18 @@ class bitmap_allocator : ParentAllocator {
     bitmap_allocator(bitmap_allocator&& other) noexcept {
         _block = other._block;
         other._block = {nullptr, 0};
-        for (std::size_t i = 0; i < free_blocks_size; ++i) _free_blocks[i] = other._free_blocks[i];
+        std::copy(other._free_blocks.begin(), other._free_blocks.end(), _free_blocks.begin());
     }
 
     bitmap_allocator& operator=(bitmap_allocator&& other) noexcept {
         _block = other._block;
         other._block = {nullptr, 0};
-        for (std::size_t i = 0; i < free_blocks_size; ++i) {
-            _free_blocks[i] = other._free_blocks[i];
-        }
+        std::copy(other._free_blocks.begin(), other._free_blocks.end(), _free_blocks.begin());
         return *this;
     }
 
     ~bitmap_allocator() {
-        if (_block.data)
-            ParentAllocator::deallocate(_block);
+        ParentAllocator::deallocate(_block);
     }
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
@@ -91,30 +90,33 @@ class bitmap_allocator : ParentAllocator {
                     _free_blocks[index + 1] &= ~(pat >> (64 - shift));
                 }
 
+                auto const sub_chunk_length = sub_length * chunk_size;
                 for (std::size_t i = 0; i < count; ++i) {
                     *out_itr++ = memory_block{reinterpret_cast<std::byte*>(_block.data) + pos * chunk_size +
-                                                  i * sub_length * chunk_size,
-                                              sub_length * chunk_size};
+                                                  i * sub_chunk_length,
+                                              sub_chunk_length};
                 }
 
                 success = true;
             }
         }
-
         return std::tuple<OutItr, bool>{out_itr, success};
     }
 
 
     private:
     void init() {
+        // get memory from the parent allocator
         _block = ParentAllocator::allocate(memory_alignment, chunk_size * num_chunks);
-        std::fill(_free_blocks, _free_blocks + free_blocks_size - 1, ~std::uint64_t{0});
 
-        auto remaining = num_chunks - 64 * (free_blocks_size - 1);
+        // mark all blocks as free
+        std::fill(_free_blocks.begin(), _free_blocks.end(), ~std::uint64_t{0});
+
+        constexpr auto remaining = num_chunks - 64 * (free_blocks_size - 1);
         if (remaining < 64) {
-            _free_blocks[free_blocks_size - 1] = pattern(remaining);
+            _free_blocks.back() = pattern(remaining);
         } else {
-            _free_blocks[free_blocks_size - 1] = ~std::uint64_t{0};
+            _free_blocks.back() = ~std::uint64_t{0};
         }
     }
 
@@ -153,9 +155,9 @@ class bitmap_allocator : ParentAllocator {
     }
 
     private:
-    memory_block _block;
-    std::uint64_t _free_blocks[free_blocks_size];
+    memory_block _block; // internal allocation made by ParentAllocator
+    std::array<std::uint64_t,free_blocks_size>  _free_blocks;
 };
-} // namespace alloc
+} // namespace ext::allocoators
 
 #endif
