@@ -7,17 +7,23 @@
 #include <array>
 #include <cassert>
 #include <tuple>
+#include <stdexcept>
 
 namespace ext::allocoators {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
 class bitmap_allocator : ParentAllocator {
+
+
     public:
     static_assert(NumChunks > 0, "NumChunks must be greater than 0");
+
+    static constexpr std::size_t bits = sizeof(uintptr_t) * 8;
+    static_assert(bits == 64, "Your pointer does not have 64bit!!!");
 
     static constexpr std::size_t chunk_size = ChunkSize;
     static constexpr std::size_t num_chunks = NumChunks;
     static constexpr std::size_t memory_alignment = Alignment;
-    static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / 64) + 1;
+    static constexpr std::size_t free_blocks_size = ((NumChunks - 1) / bits) + 1;
 
     bitmap_allocator() noexcept : _block{nullptr, 0} {}
     bitmap_allocator(bitmap_allocator const&) = delete;
@@ -41,12 +47,12 @@ class bitmap_allocator : ParentAllocator {
     }
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
-        (void) alignment;
+        assert(alignment <= Alignment); (void) alignment;
         return pattern_length(size) * chunk_size;
     }
 
     bool owns(memory_block block) const noexcept {
-        return block.data >= _block.data && block.data + block.size <= _block.data + _block.size;
+        return _block.owns(block);
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {
@@ -86,8 +92,8 @@ class bitmap_allocator : ParentAllocator {
                 auto shift = pattern_shift(pos);
                 auto index = free_blocks_index(pos);
                 _free_blocks[index] &= ~(pat << shift);
-                if ((shift & 63) + length > 64) {
-                    _free_blocks[index + 1] &= ~(pat >> (64 - shift));
+                if ((shift & 63) + length > bits) {
+                    _free_blocks[index + 1] &= ~(pat >> (bits - shift));
                 }
 
                 auto const sub_chunk_length = sub_length * chunk_size;
@@ -112,8 +118,8 @@ class bitmap_allocator : ParentAllocator {
         // mark all blocks as free
         std::fill(_free_blocks.begin(), _free_blocks.end(), ~std::uint64_t{0});
 
-        constexpr auto remaining = num_chunks - 64 * (free_blocks_size - 1);
-        if (remaining < 64) {
+        constexpr auto remaining = num_chunks - bits * (free_blocks_size - 1);
+        if (remaining < bits) {
             _free_blocks.back() = pattern(remaining);
         } else {
             _free_blocks.back() = ~std::uint64_t{0};
@@ -131,8 +137,8 @@ class bitmap_allocator : ParentAllocator {
         std::uint64_t pat = pattern(length);
 
         bool out = (_free_blocks[index] & (pat << shift)) == (pat << shift);
-        if ((shift & 63) + length > 64) {
-            out = out && (_free_blocks[index + 1] & (pat >> (64 - shift))) == (pat >> (64 - shift));
+        if ((shift & 63) + length > bits) {
+            out = out && (_free_blocks[index + 1] & (pat >> (bits - shift))) == (pat >> (bits - shift));
         }
 
         return out;
@@ -143,7 +149,7 @@ class bitmap_allocator : ParentAllocator {
     }
 
     static constexpr std::size_t pattern(std::size_t length) noexcept {
-        return (std::uint64_t{1} << length) - 1;
+        return (std::uintptr_t{1} << length) - 1;
     }
 
     static constexpr std::size_t pattern_shift(std::size_t chunk_index) noexcept {
@@ -156,7 +162,7 @@ class bitmap_allocator : ParentAllocator {
 
     private:
     memory_block _block; // internal allocation made by ParentAllocator
-    std::array<std::uint64_t, free_blocks_size> _free_blocks;
+    std::array<std::uintptr_t, free_blocks_size> _free_blocks;
 };
 } // namespace ext::allocoators
 

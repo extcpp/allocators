@@ -22,7 +22,7 @@ class alignas(Alignment) blob_allocator {
     }
 
     bool owns(memory_block block) const noexcept {
-        return block.data >= _data && block.data + block.size <= _data + memory_size;
+        return owns_block(_data, memory_size, block);
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) noexcept {
