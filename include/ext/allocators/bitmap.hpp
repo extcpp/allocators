@@ -43,7 +43,9 @@ class bitmap_allocator : ParentAllocator {
     }
 
     ~bitmap_allocator() {
-        ParentAllocator::deallocate(_block);
+        if(_block) {
+            ParentAllocator::deallocate(_block);
+        }
     }
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {

@@ -21,7 +21,7 @@ class alignas(Alignment) blob_allocator {
         return size <= memory_size && alignment <= memory_alignment ? memory_size : 0;
     }
 
-    bool owns(memory_block block) const noexcept {
+    bool owns(memory_block block) EXTALLOC_NOEXCEPT {
         return owns_block(_data, memory_size, block);
     }
 
@@ -33,7 +33,7 @@ class alignas(Alignment) blob_allocator {
         return out;
     }
 
-    void deallocate(memory_block block) noexcept {
+    void deallocate(memory_block block) EXTALLOC_NOEXCEPT {
         (void) block;
         assert(owns(block));
         _allocated = false;

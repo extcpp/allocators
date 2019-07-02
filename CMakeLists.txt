@@ -27,6 +27,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ## OPTIONS
 option(EXTALLOC_TESTS "build tests" ON)
 option(EXTALLOC_WARNINGS "enable warnings" ON)
+option(EXTALLOC_EXCEPTIONS "use exceptions" ON) # FIXME - default should be OFF eventually
 
 ## general setup and includes
 set(CMAKE_CXX_STANDARD 17)
@@ -56,7 +57,11 @@ add_library(extalloc INTERFACE)
 target_include_directories(extalloc INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_compile_features(extalloc INTERFACE cxx_std_17)
 target_compile_options(extalloc INTERFACE
-    $<$<AND:$<CONFIG:Debug>,$<BOOL:EXTALLOC_WARNINGS>>:${ext_stone-warnings}>
+    $<$<AND:$<CONFIG:Debug>,$<BOOL:${EXTALLOC_WARNINGS}>>:${ext_stone-warnings}>
+)
+
+target_compile_definitions(extalloc INTERFACE
+    $<$<BOOL:${EXTALLOC_EXCEPTIONS}>:EXTALLOC_EXCEPTIONS=1>
 )
 
 target_compile_definitions(extalloc INTERFACE
