@@ -6,8 +6,8 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <tuple>
 #include <stdexcept>
+#include <tuple>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
@@ -43,13 +43,14 @@ class bitmap_allocator : ParentAllocator {
     }
 
     ~bitmap_allocator() {
-        if(_block) {
+        if (_block) {
             ParentAllocator::deallocate(_block);
         }
     }
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
-        assert(alignment <= Alignment); (void) alignment;
+        assert(alignment <= Alignment);
+        (void) alignment;
         return pattern_length(size) * chunk_size;
     }
 

@@ -1,16 +1,16 @@
 #pragma once
 #ifndef INCLGUARD_memory_block_hpp
 #    define INCLGUARD_memory_block_hpp
+#    include "config.hpp"
+#    include <cassert>
 #    include <cstddef>
 #    include <stdexcept>
-#    include <cassert>
-#    include "config.hpp"
 
-#ifdef EXTALLOC_EXCEPTIONS
-#define EXTALLOC_NOEXCEPT noexcept(false)
-#else
-#define EXTALLOC_NOEXCEPT noexcept
-#endif
+#    ifdef EXTALLOC_EXCEPTIONS
+#        define EXTALLOC_NOEXCEPT noexcept(false)
+#    else
+#        define EXTALLOC_NOEXCEPT noexcept
+#    endif
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 
@@ -43,12 +43,12 @@ inline bool owns_block(std::byte const* data, std::size_t size, memory_block con
     }
 
     if (block.data >= data) {
-        if ( block.data + block.size <= data + size) {
+        if (block.data + block.size <= data + size) {
             return true;
-        } else  {
-    #ifdef EXTALLOC_EXCEPTIONS
+        } else {
+#    ifdef EXTALLOC_EXCEPTIONS
             throw std::runtime_error("allocation begins in this block but is not contained within it");
-    #endif
+#    endif
             return false;
         }
     }

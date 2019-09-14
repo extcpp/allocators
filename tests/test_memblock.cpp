@@ -32,9 +32,9 @@ TEST(block, test_deleter_divergent_size) {
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
         EXPECT_TRUE(
-            (std::is_same<
-                deleter_t,
-                EXT_ALLOCATOR_NAMESPACE::deleter<allocator_t, EXT_ALLOCATOR_NAMESPACE::deleter_options::divergent_size>>::value));
+            (std::is_same<deleter_t,
+                          EXT_ALLOCATOR_NAMESPACE::
+                              deleter<allocator_t, EXT_ALLOCATOR_NAMESPACE::deleter_options::divergent_size>>::value));
 
         EXPECT_EQ(*up, 42);
         EXPECT_EQ(sizeof(up), sizeof(void*) * 2);
@@ -54,7 +54,8 @@ TEST(block, test_deleter_local) {
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
         EXPECT_TRUE(
             (std::is_same<deleter_t,
-                          EXT_ALLOCATOR_NAMESPACE::deleter<allocator_t, EXT_ALLOCATOR_NAMESPACE::deleter_options::local>>::value));
+                          EXT_ALLOCATOR_NAMESPACE::deleter<allocator_t,
+                                                           EXT_ALLOCATOR_NAMESPACE::deleter_options::local>>::value));
 
         EXPECT_EQ(*up, 42);
         EXPECT_EQ(sizeof(up), sizeof(void*) * 2);
@@ -72,10 +73,11 @@ TEST(block, test_deleter_divsize_local) {
         auto up = EXT_ALLOCATOR_NAMESPACE::make_unique<int>(&a, 42);
 
         using deleter_t = std::remove_reference_t<decltype(up)>::deleter_type;
-        EXPECT_TRUE((std::is_same<deleter_t,
-                                  EXT_ALLOCATOR_NAMESPACE::deleter<allocator_t,
-                                                            EXT_ALLOCATOR_NAMESPACE::deleter_options::divergent_size |
-                                                                EXT_ALLOCATOR_NAMESPACE::deleter_options::local>>::value));
+        EXPECT_TRUE((std::is_same<
+                     deleter_t,
+                     EXT_ALLOCATOR_NAMESPACE::deleter<allocator_t,
+                                                      EXT_ALLOCATOR_NAMESPACE::deleter_options::divergent_size |
+                                                          EXT_ALLOCATOR_NAMESPACE::deleter_options::local>>::value));
 
         EXPECT_EQ(*up, 42);
         EXPECT_EQ(sizeof(up), sizeof(void*) * 3);

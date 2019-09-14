@@ -1,9 +1,9 @@
 #ifndef INCLGUARD_allocator_traits_hpp
 #define INCLGUARD_allocator_traits_hpp
 
+#include "config.hpp"
 #include "detail_block.hpp"
 #include <type_traits>
-#    include "config.hpp"
 
 namespace EXT_ALLOCATOR_NAMESPACE { namespace _detail {
 

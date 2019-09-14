@@ -39,10 +39,12 @@ struct dummy_allocator {
 
 TEST(wrapper, test_functions) {
     test::dummy_allocator a;
-    EXT_ALLOCATOR_NAMESPACE::allocator_wrapper<int, test::dummy_allocator, std::max(alignof(int), alignof(double))> w{&a};
+    EXT_ALLOCATOR_NAMESPACE::allocator_wrapper<int, test::dummy_allocator, std::max(alignof(int), alignof(double))> w{
+        &a};
 
     {
-        EXT_ALLOCATOR_NAMESPACE::allocator_wrapper<int, test::dummy_allocator, 8> other = decltype(w)::rebind<int>::other(w);
+        EXT_ALLOCATOR_NAMESPACE::allocator_wrapper<int, test::dummy_allocator, 8> other =
+            decltype(w)::rebind<int>::other(w);
         EXPECT_EQ(other._allocator, &a);
     }
 
