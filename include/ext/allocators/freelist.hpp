@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 #if 0
 // TODO: finish this allocator
 //#    error unfinished
@@ -59,6 +59,6 @@ class free_list_allocator : ParentAllocator {
     free_block* _head;
 };
 #endif
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

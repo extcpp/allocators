@@ -5,7 +5,7 @@
 #include "detail_traits.hpp"
 #include <type_traits>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 namespace _detail {
 template<typename Derived,
          typename FirstAllocator,
@@ -76,6 +76,6 @@ struct alignment_segregator
         }
     }
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

@@ -10,7 +10,7 @@
 #include <tuple>
 #include <vector>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 namespace _detail_cascading_allocator {
 template<typename Derived, typename ChildAllocator, typename = void>
 class extension_allocate_array {
@@ -121,6 +121,6 @@ class cascading_allocator
 
     std::vector<child_allocator_t, allocator_wrapper<child_allocator_t, parent_allocator_t>> _chunks;
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

@@ -5,7 +5,7 @@
 #    include "detail_block.hpp"
 #    include <cassert>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 struct null_allocator {
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
         (void) alignment;
@@ -36,6 +36,6 @@ struct null_allocator {
 
     void deallocate_all() {}
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

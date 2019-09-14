@@ -8,7 +8,7 @@
 #include <memory>
 #include <type_traits>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 template<typename T, typename Allocator, std::size_t Alignment = alignof(T)>
 class allocator_wrapper {
     public:
@@ -194,6 +194,6 @@ auto make_unique(Allocator* a, Args&&... args) -> std::enable_if_t<
 
 #endif
 
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

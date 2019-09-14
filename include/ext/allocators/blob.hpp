@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstddef>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 template<std::size_t Alignment, std::size_t MemorySize>
 class alignas(Alignment) blob_allocator {
     public:
@@ -58,6 +58,6 @@ class alignas(Alignment) blob_allocator {
     std::byte _data[memory_size];
     bool _allocated;
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

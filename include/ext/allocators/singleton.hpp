@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstddef>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 namespace _detail_singleton_allocator {
 template<typename Derived, typename Allocator, typename = void>
 struct extension_allocate_array {};
@@ -58,6 +58,6 @@ struct singleton_allocator
         return instance().deallocate(block);
     }
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

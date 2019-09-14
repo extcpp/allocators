@@ -4,6 +4,7 @@
 #    include <cstddef>
 #    include <stdexcept>
 #    include <cassert>
+#    include "config.hpp"
 
 #ifdef EXTALLOC_EXCEPTIONS
 #define EXTALLOC_NOEXCEPT noexcept(false)
@@ -11,7 +12,7 @@
 #define EXTALLOC_NOEXCEPT noexcept
 #endif
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 
 struct memory_block;
 inline bool owns_block(std::byte const* data, std::size_t size, memory_block const& block) EXTALLOC_NOEXCEPT;
@@ -62,6 +63,6 @@ inline bool operator!=(memory_block lhs, memory_block rhs) {
     return !(lhs == rhs);
 }
 
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

@@ -3,8 +3,9 @@
 
 #include "detail_block.hpp"
 #include <type_traits>
+#    include "config.hpp"
 
-namespace ext::allocoators { namespace _detail {
+namespace EXT_ALLOCATOR_NAMESPACE { namespace _detail {
 
 template<typename T, typename = void>
 struct has_allocate_array : std::false_type {};
@@ -19,6 +20,6 @@ struct has_allocate_array<
 template<typename T>
 inline bool has_allocate_array_v = has_allocate_array<T>::value;
 
-}} // namespace ext::allocoators::_detail
+}} // namespace EXT_ALLOCATOR_NAMESPACE::_detail
 
 #endif

@@ -5,7 +5,7 @@
 #include "detail_traits.hpp"
 #include <tuple>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 namespace _detail_fallback_allocator {
 template<typename Derived, typename FirstAllocator, typename SecondAllocator, typename = void>
 struct extension_allocate_array {};
@@ -65,6 +65,6 @@ class fallback_allocator
     }
 };
 
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

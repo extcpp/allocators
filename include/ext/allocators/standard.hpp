@@ -6,7 +6,7 @@
 #    include <cassert>
 #    include <cstdlib>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 class standard_allocator {
     public:
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) noexcept {
@@ -32,6 +32,6 @@ class standard_allocator {
         std::free(block.data);
     }
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif

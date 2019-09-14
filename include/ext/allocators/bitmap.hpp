@@ -9,7 +9,7 @@
 #include <tuple>
 #include <stdexcept>
 
-namespace ext::allocoators {
+namespace EXT_ALLOCATOR_NAMESPACE {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
 class bitmap_allocator : ParentAllocator {
 
@@ -166,6 +166,6 @@ class bitmap_allocator : ParentAllocator {
     memory_block _block; // internal allocation made by ParentAllocator
     std::array<std::uintptr_t, free_blocks_size> _free_blocks;
 };
-} // namespace ext::allocoators
+} // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif
