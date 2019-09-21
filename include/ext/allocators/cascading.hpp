@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_cascading_allocator_hpp
-#define INCLGUARD_cascading_allocator_hpp
+#ifndef EXT_ALLOCATORS_CASCADING_HEADER
+#define EXT_ALLOCATORS_CASCADING_HEADER
 
 #include "detail_block.hpp"
 #include "detail_traits.hpp"
@@ -123,4 +123,4 @@ class cascading_allocator
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_CASCADING_HEADER

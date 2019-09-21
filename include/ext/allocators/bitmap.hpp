@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_bitmap_allocator_hpp
-#define INCLGUARD_bitmap_allocator_hpp
+#ifndef EXT_ALLOCATORS_BITMAP_HEADER
+#define EXT_ALLOCATORS_BITMAP_HEADER
 
 #include "detail_block.hpp"
 
@@ -169,4 +169,4 @@ class bitmap_allocator : ParentAllocator {
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_BITMAP_HEADER

@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_stack_allocator_hpp
-#define INCLGUARD_stack_allocator_hpp
+#ifndef EXT_ALLOCATORS_STACK_HEADER
+#define EXT_ALLOCATORS_STACK_HEADER
 
 #include "detail_block.hpp"
 //#include <boost/align/aligned_alloc.hpp>
@@ -106,4 +106,4 @@ class stack_allocator : ParentAllocator {
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_STACK_HEADER

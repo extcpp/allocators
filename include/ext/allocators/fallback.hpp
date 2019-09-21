@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_fallback_allocator_hpp
-#define INCLGUARD_fallback_allocator_hpp
+#ifndef EXT_ALLOCATORS_FALLBACK_HEADER
+#define EXT_ALLOCATORS_FALLBACK_HEADER
 
 #include "detail_block.hpp"
 #include "detail_traits.hpp"
@@ -67,4 +67,4 @@ class fallback_allocator
 
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_FALLBACK_HEADER

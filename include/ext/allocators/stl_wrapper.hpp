@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_allocator_wrapper_hpp
-#define INCLGUARD_allocator_wrapper_hpp
+#ifndef EXT_ALLOCATORS_STL_WRAPPER_HEADER
+#define EXT_ALLOCATORS_STL_WRAPPER_HEADER
 
 #include "detail_block.hpp"
 #include <boost/align/align_up.hpp>
@@ -192,8 +192,8 @@ auto make_unique(Allocator* a, Args&&... args) -> std::enable_if_t<
     return {new (block.data) Type{std::forward<Args>(args)...}, {a, block.size}};
 }
 
-#endif
+#endif // 1
 
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_STL_WRAPPER_HEADER

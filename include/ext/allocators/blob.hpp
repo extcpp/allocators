@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_blob_allocator_hpp
-#define INCLGUARD_blob_allocator_hpp
+#ifndef EXT_ALLOCATORS_BLOB_HEADER
+#define EXT_ALLOCATORS_BLOB_HEADER
 
 #include "detail_block.hpp"
 #include <boost/align/aligned_alloc.hpp>
@@ -60,4 +60,4 @@ class alignas(Alignment) blob_allocator {
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_BLOB_HEADER

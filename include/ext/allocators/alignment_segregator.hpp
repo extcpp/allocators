@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_alignment_segregator_hpp
-#define INCLGUARD_alignment_segregator_hpp
+#ifndef EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER
+#define EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER
 
 #include "detail_block.hpp"
 #include "detail_traits.hpp"
@@ -78,4 +78,4 @@ struct alignment_segregator
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER

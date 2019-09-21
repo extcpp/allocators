@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_allocator_traits_hpp
-#define INCLGUARD_allocator_traits_hpp
+#ifndef EXT_ALLOCATORS_DETAIL_TRAITS_HEADER
+#define EXT_ALLOCATORS_DETAIL_TRAITS_HEADER
 
 #include "config.hpp"
 #include "detail_block.hpp"
@@ -22,4 +22,4 @@ inline bool has_allocate_array_v = has_allocate_array<T>::value;
 
 }} // namespace EXT_ALLOCATOR_NAMESPACE::_detail
 
-#endif
+#endif // EXT_ALLOCATORS_DETAIL_TRAITS_HEADER

@@ -1,9 +1,8 @@
-#pragma once
-#ifndef INCLGUARD_null_allocator_hpp
-#    define INCLGUARD_null_allocator_hpp
+#ifndef EXT_ALLOCATORS_NULL_HEADER
+#define EXT_ALLOCATORS_NULL_HEADER
 
-#    include "detail_block.hpp"
-#    include <cassert>
+#include "detail_block.hpp"
+#include <cassert>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 struct null_allocator {
@@ -38,4 +37,4 @@ struct null_allocator {
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_NULL_HEADER

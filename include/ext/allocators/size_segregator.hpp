@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_size_segregator_hpp
-#define INCLGUARD_size_segregator_hpp
+#ifndef EXT_ALLOCATORS_SIZE_SEGREGATOR_HEADER
+#define EXT_ALLOCATORS_SIZE_SEGREGATOR_HEADER
 
 #include "detail_block.hpp"
 #include "detail_traits.hpp"
@@ -82,4 +82,4 @@ struct size_segregator
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_SIZE_SEGREGATOR_HEADER

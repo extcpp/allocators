@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_singleton_allocator_hpp
-#define INCLGUARD_singleton_allocator_hpp
+#ifndef EXT_ALLOCATORS_SINGLETON_HEADER
+#define EXT_ALLOCATORS_SINGLETON_HEADER
 
 #include "detail_block.hpp"
 #include "detail_traits.hpp"
@@ -60,4 +60,4 @@ struct singleton_allocator
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_SINGLETON_HEADER

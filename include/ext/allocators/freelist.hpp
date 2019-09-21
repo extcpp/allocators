@@ -1,5 +1,5 @@
-#ifndef INCLGUARD_free_list_allocator_hpp
-#define INCLGUARD_free_list_allocator_hpp
+#ifndef EXT_ALLOCATORS_FREELIST_HEADER
+#define EXT_ALLOCATORS_FREELIST_HEADER
 
 #include "detail_block.hpp"
 #include <cassert>
@@ -58,7 +58,7 @@ class free_list_allocator : ParentAllocator {
     private:
     free_block* _head;
 };
-#endif
+#endif // 0
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_FREELIST_HEADER

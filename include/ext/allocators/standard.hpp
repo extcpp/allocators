@@ -1,10 +1,9 @@
-#pragma once
-#ifndef INCLGUARD_standard_allocator_hpp
-#    define INCLGUARD_standard_allocator_hpp
+#ifndef EXT_ALLOCATORS_STANDARD_HEADER
+#define EXT_ALLOCATORS_STANDARD_HEADER
 
-#    include "detail_block.hpp"
-#    include <cassert>
-#    include <cstdlib>
+#include "detail_block.hpp"
+#include <cassert>
+#include <cstdlib>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 class standard_allocator {
@@ -34,4 +33,4 @@ class standard_allocator {
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
-#endif
+#endif // EXT_ALLOCATORS_STANDARD_HEADER
