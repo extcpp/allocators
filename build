@@ -1,6 +1,0 @@
-#!/bin/bash
-project_root="${project_root:-"$(realpath -s "$(dirname "$(readlink -s -f "${BASH_SOURCE[0]}")")")"}"
-cmake_var_tests="-DEXTALLOC_TESTS=ON"
-cmake_var_examples="-DEXTALLOC_EXAMPLES=ON"
-
-. .build-ext

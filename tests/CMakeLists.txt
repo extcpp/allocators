@@ -1,6 +1,6 @@
-project(libext-tests)
+project(ext-allocators-tests)
 
-set(test_files 
+set(test-files 
     "test_allocator_wrapper"
     "test_bitmap_allocator"
     "test_blob_allocator"
@@ -9,18 +9,17 @@ set(test_files
 
 #build one executable
 set(test_sources)
-foreach(test_name IN LISTS test_files) # <- DO NOT EXPAND LIST
+foreach(test_name IN LISTS test-files${suffix}) # <- DO NOT EXPAND LIST
     list(APPEND test_sources "${test_name}.cpp")
 endforeach()
 
-#define test target
-add_executable(test_extalloc gtest.cpp ${test_sources})
-target_include_directories(test_extalloc SYSTEM PRIVATE ${gtest_SOURCE_DIR}/include)
-target_link_libraries(test_extalloc extalloc gtest_main gtest)
-target_compile_options(test_extalloc PRIVATE ${ext_stone-warnings})
-
-#add test to ctest
-add_test(NAME test_extalloc_run COMMAND $<TARGET_FILE:test_extalloc>)
-
-#ui
-set_target_properties (test_extalloc PROPERTIES FOLDER tests/test_extalloc)
+set(test_target "test-ext-allocators${suffix}")
+add_executable("${test_target}" gtest.cpp ${test_sources})
+target_include_directories("${test_target}" SYSTEM PRIVATE ${gtest_SOURCE_DIR}/include)
+target_link_libraries("${test_target}" ext::allocators gtest_main gtest Threads::Threads)
+target_compile_options("${test_target}" PRIVATE ${ext_stone-warnings})
+target_compile_definitions("${test_target}" PUBLIC EXT_CHECKED=1 EXT_IN_TEST=1)
+# -- repeated calls should append which does not happen for me (cmake 3.16 on linux)
+#target_compile_definitions("${test_target}" PUBLIC EXT_IN_TEST=1
+add_test(NAME "${test_target}_run" COMMAND $<TARGET_FILE:${test_target}>)
+set_target_properties (${test_target} PROPERTIES FOLDER tests/${test_target})
