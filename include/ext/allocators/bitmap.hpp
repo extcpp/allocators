@@ -1,7 +1,7 @@
 #ifndef EXT_ALLOCATORS_BITMAP_HEADER
 #define EXT_ALLOCATORS_BITMAP_HEADER
 
-#include "detail_block.hpp"
+#include "memory_block.hpp"
 
 #include <algorithm>
 #include <array>
@@ -13,8 +13,7 @@ namespace EXT_ALLOCATOR_NAMESPACE {
 template<typename ParentAllocator, std::size_t Alignment, std::size_t ChunkSize, std::size_t NumChunks>
 class bitmap_allocator : ParentAllocator {
 
-
-    public:
+public:
     static_assert(NumChunks > 0, "NumChunks must be greater than 0");
 
     static constexpr std::size_t bits = sizeof(uintptr_t) * 8;
@@ -74,7 +73,7 @@ class bitmap_allocator : ParentAllocator {
 
     template<typename OutItr>
     std::tuple<OutItr, bool>
-        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
+    allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         if (!_block.data) {
             init();
         }
@@ -113,7 +112,7 @@ class bitmap_allocator : ParentAllocator {
     }
 
 
-    private:
+private:
     void init() {
         // get memory from the parent allocator
         _block = ParentAllocator::allocate(memory_alignment, chunk_size * num_chunks);
@@ -163,9 +162,10 @@ class bitmap_allocator : ParentAllocator {
         return chunk_index >> 6;
     }
 
-    private:
+private:
     memory_block _block; // internal allocation made by ParentAllocator
     std::array<std::uintptr_t, free_blocks_size> _free_blocks;
+
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 

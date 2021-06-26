@@ -1,8 +1,7 @@
 #ifndef EXT_ALLOCATORS_CASCADING_HEADER
 #define EXT_ALLOCATORS_CASCADING_HEADER
 
-#include "detail_block.hpp"
-#include "detail_traits.hpp"
+#include "memory_block.hpp"
 #include "stl_wrapper.hpp"
 
 #include <cassert>
@@ -11,58 +10,13 @@
 #include <vector>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
-namespace _detail_cascading_allocator {
-template<typename Derived, typename ChildAllocator, typename = void>
-class extension_allocate_array {
-    protected:
-    template<typename OutItr>
-    std::tuple<OutItr, bool> allocate_helper(
-        ChildAllocator& allocator, std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        (void) count; // FIXME
-        assert(count == 1);
-        memory_block block = allocator.allocate(alignment, size);
-        if (block.data) {
-            *out_itr++ = block;
-            return {out_itr, true};
-        } else
-            return {out_itr, false};
-    }
-};
-
-template<typename Derived, typename ChildAllocator>
-class extension_allocate_array<Derived,
-                               ChildAllocator,
-                               std::enable_if_t<_detail::has_allocate_array_v<ChildAllocator>>> {
-    public:
-    template<typename OutItr>
-    std::tuple<OutItr, bool>
-        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        return static_cast<Derived*>(this)->allocate_impl(alignment, size, count, out_itr);
-    }
-
-    protected:
-    template<typename OutItr>
-    std::tuple<OutItr, bool> allocate_helper(
-        ChildAllocator& allocator, std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        return allocator.allocate_array(alignment, size, count, out_itr);
-    }
-};
-} // namespace _detail_cascading_allocator
 
 /// creates ChildAllocator objects in the memory pool of ParentAllocator as needed
-template<typename ParentAllocator, typename ChildAllocator>
-class cascading_allocator
-    : public _detail_cascading_allocator::extension_allocate_array<cascading_allocator<ParentAllocator, ChildAllocator>,
-                                                                   ChildAllocator>
-    , private ParentAllocator {
-    private:
-    using base =
-        _detail_cascading_allocator::extension_allocate_array<cascading_allocator<ParentAllocator, ChildAllocator>,
-                                                              ChildAllocator>;
-    friend base;
-    using base::allocate_helper;
 
-    public:
+template<typename ParentAllocator, typename ChildAllocator>
+class cascading_allocator : private ParentAllocator
+{
+public:
     using parent_allocator_t = ParentAllocator;
     using child_allocator_t = ChildAllocator;
 
@@ -92,7 +46,7 @@ class cascading_allocator
         itr->deallocate(block);
     }
 
-    private:
+private:
     template<typename OutItr>
     std::tuple<OutItr, bool> allocate_impl(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
         std::tuple<OutItr, bool> result{out_itr, false};

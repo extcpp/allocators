@@ -13,6 +13,12 @@
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 
+template<typename T>
+std::enable_if_t<std::is_pointer_v<T>, T>
+inline constexpr align_up(T addr, std::size_t alignment) {
+    return reinterpret_cast<T>(((reinterpret_cast<std::uintptr_t>(addr) + (alignment - 1)) / alignment) * alignment);
+}
+
 struct memory_block;
 inline bool owns_block(std::byte const* data, std::size_t size, memory_block const& block) EXTALLOC_NOEXCEPT;
 
@@ -25,12 +31,13 @@ struct memory_block {
         return data != nullptr;
     }
 
-    std::byte* data;
-    std::size_t size;
-
     bool owns(memory_block const& other) const EXTALLOC_NOEXCEPT {
         return owns_block(data, size, other);
     };
+
+    std::byte* data;    // pointer to data
+    std::size_t size;   // byte size
+
 };
 
 inline bool owns_block(std::byte const* data, std::size_t size, memory_block const& block) EXTALLOC_NOEXCEPT {

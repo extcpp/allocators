@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <ext/allocators/detail_block.hpp>
-
+#include <ext/allocators/memory_block.hpp>
 #include <ext/allocators/singleton.hpp>
+
 #define private public
 #include <ext/allocators/blob.hpp>
 #include <ext/allocators/stl_wrapper.hpp>

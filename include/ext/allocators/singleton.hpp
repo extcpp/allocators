@@ -1,35 +1,25 @@
 #ifndef EXT_ALLOCATORS_SINGLETON_HEADER
 #define EXT_ALLOCATORS_SINGLETON_HEADER
 
-#include "detail_block.hpp"
-#include "detail_traits.hpp"
+#include "memory_block.hpp"
 #include <cassert>
 #include <cstddef>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
-namespace _detail_singleton_allocator {
-template<typename Derived, typename Allocator, typename = void>
-struct extension_allocate_array {};
-
-template<typename Derived, typename Allocator>
-struct extension_allocate_array<Derived, Allocator, std::enable_if_t<_detail::has_allocate_array_v<Allocator>>> {
-    template<typename OutItr>
-    std::tuple<OutItr, bool>
-        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        auto* parent = static_cast<Derived*>(this);
-        return parent->instance().allocate_array(alignment, size, count, out_itr);
-    }
-};
-} // namespace _detail_singleton_allocator
 
 /// creates a thread_local instance of the given allocator type, which will used by any instance of this allocator
 /**
     \note The instance of Allocator will be created as a thread_local static function variable.
 */
 template<typename Allocator, typename Tag = void>
-struct singleton_allocator
-    : public _detail_singleton_allocator::extension_allocate_array<singleton_allocator<Allocator>, Allocator> {
+struct singleton_allocator {
     using allocator_t = Allocator;
+
+    /// returns the global thread_local instance of allocator_t
+    static allocator_t& instance() {
+        thread_local static allocator_t a;
+        return a;
+    }
 
     /// returns the actual size for the requested size and alignment
     /**
@@ -42,12 +32,6 @@ struct singleton_allocator
 
     bool owns(memory_block block) const {
         return instance().owns(block);
-    }
-
-    /// returns the global thread_local instance of allocator_t
-    static allocator_t& instance() {
-        thread_local static allocator_t a;
-        return a;
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {

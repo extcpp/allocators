@@ -1,8 +1,7 @@
 #ifndef EXT_ALLOCATORS_STL_WRAPPER_HEADER
 #define EXT_ALLOCATORS_STL_WRAPPER_HEADER
 
-#include "detail_block.hpp"
-#include <boost/align/align_up.hpp>
+#include "memory_block.hpp"
 
 #include <algorithm>
 #include <memory>

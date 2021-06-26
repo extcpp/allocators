@@ -1,7 +1,7 @@
 #ifndef EXT_ALLOCATORS_NULL_HEADER
 #define EXT_ALLOCATORS_NULL_HEADER
 
-#include "detail_block.hpp"
+#include "memory_block.hpp"
 #include <cassert>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
@@ -24,10 +24,6 @@ struct null_allocator {
         (void) block;
         assert(block.data == nullptr);
     }
-
-    // bool expand(memory_block&, std::size_t /* new_size */) {
-    //    return false;
-    //}
 
     memory_block allocate_all(std::size_t /* alignment */) {
         return {nullptr, 0};

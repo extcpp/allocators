@@ -1,10 +1,8 @@
 #ifndef EXT_ALLOCATORS_STACK_HEADER
 #define EXT_ALLOCATORS_STACK_HEADER
 
-#include "detail_block.hpp"
-//#include <boost/align/aligned_alloc.hpp>
+#include "memory_block.hpp"
 #include <cassert>
-//#include <cstddef>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
 /// allocates memory in a stack like manner
@@ -14,7 +12,7 @@ namespace EXT_ALLOCATOR_NAMESPACE {
 */
 template<typename ParentAllocator, std::size_t Alignment, std::size_t MemorySize>
 class stack_allocator : ParentAllocator {
-    public:
+public:
     static constexpr std::size_t memory_size = MemorySize;
     static constexpr std::size_t memory_alignment = Alignment;
 
@@ -50,16 +48,18 @@ class stack_allocator : ParentAllocator {
     }
 
     memory_block allocate(std::size_t alignment, std::size_t size) {
-        if (!_start)
+        if(!_start)
             init();
 
         memory_block out{nullptr, 0};
 
         // refuses alignments greater than memory_alignment
-        if (_cur && alignment <= memory_alignment) {
-            size = static_cast<std::size_t>(boost::alignment::align_up(_cur + size, memory_alignment) - _cur);
-            out = {_cur, size};
-            _cur += size;
+        if(_cur == nullptr) {
+            auto* aligned_ptr = align_up(_cur, alignment);
+            if(aligned_ptr + size < _end) {
+                out = {aligned_ptr, size};
+                _cur += size;
+            }
         }
 
         return out;
@@ -72,8 +72,8 @@ class stack_allocator : ParentAllocator {
             init();
 
         if (_start && alignment <= memory_alignment) {
-            out = {ptr, _end - ptr};
-            _ptr = _end;
+            out = {_cur, _end - _cur};
+            _cur = _end;
         }
 
         return out;
@@ -92,17 +92,17 @@ class stack_allocator : ParentAllocator {
         return block.data >= _start && block.data + block.size <= _end;
     }
 
-    private:
+private:
     void init() {
         auto block = ParentAllocator::allocate(memory_size, memory_alignment);
         _end = _start = _cur = block.data;
         _end += block.size;
     }
 
-    private:
-    char* _start;
-    char* _cur;
-    char* _end;
+private:
+    std::byte* _start;
+    std::byte* _cur;
+    std::byte* _end;
 };
 } // namespace EXT_ALLOCATOR_NAMESPACE
 

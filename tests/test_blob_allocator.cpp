@@ -5,6 +5,8 @@
 #undef private
 
 TEST(blob, test_allocate) {
+
+    // allocate in memory of 64bit with alignment of 8bit
     EXT_ALLOCATOR_NAMESPACE::blob_allocator<8, 64> a;
 
     auto block = a.allocate(8, 64);

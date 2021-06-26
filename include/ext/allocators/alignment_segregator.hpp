@@ -1,51 +1,18 @@
 #ifndef EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER
 #define EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER
 
-#include "detail_block.hpp"
-#include "detail_traits.hpp"
+#include "memory_block.hpp"
 #include <type_traits>
 
 namespace EXT_ALLOCATOR_NAMESPACE {
-namespace _detail {
-template<typename Derived,
-         typename FirstAllocator,
-         typename SecondAllocator,
-         std::size_t AlignmentLessOrEqual,
-         typename = void>
-struct extension_allocate_array {};
-
-template<typename Derived, typename FirstAllocator, typename SecondAllocator, std::size_t AlignmentLessOrEqual>
-struct extension_allocate_array<
-    Derived,
-    FirstAllocator,
-    SecondAllocator,
-    AlignmentLessOrEqual,
-    std::enable_if_t<_detail::has_allocate_array_v<FirstAllocator> && _detail::has_allocate_array_v<SecondAllocator>>> {
-    template<class OutItr>
-    std::tuple<OutItr, bool>
-        allocate_array(std::size_t alignment, std::size_t size, std::size_t count, OutItr out_itr) {
-        auto* parent = static_cast<Derived*>(this);
-        if (alignment <= AlignmentLessOrEqual) {
-            return static_cast<FirstAllocator*>(parent)->allocate_array(alignment, size, count, out_itr);
-        } else {
-            return static_cast<SecondAllocator*>(parent)->allocate_array(alignment, size, count, out_itr);
-        }
-    }
-};
-} // namespace _detail
 
 template<typename FirstAllocator, typename SecondAllocator, std::size_t AlignmentLessOrEqual>
 struct alignment_segregator
-    : public _detail::extension_allocate_array<
-          alignment_segregator<FirstAllocator, SecondAllocator, AlignmentLessOrEqual>,
-          FirstAllocator,
-          SecondAllocator,
-          AlignmentLessOrEqual>
-    , private FirstAllocator
-    , private SecondAllocator {
-
-    // using first_allocator = FirstAllocator;
-    // using second_allocator = SecondAllocator;
+    : private FirstAllocator
+    , private SecondAllocator
+{
+    using first_allocator = FirstAllocator;
+    using second_allocator = SecondAllocator;
     static constexpr std::size_t dividing_alignment = AlignmentLessOrEqual;
 
     static constexpr std::size_t actual_size(std::size_t alignment, std::size_t size) {
@@ -76,6 +43,7 @@ struct alignment_segregator
         }
     }
 };
+
 } // namespace EXT_ALLOCATOR_NAMESPACE
 
 #endif // EXT_ALLOCATORS_ALIGNMENT_SEGREGATOR_HEADER

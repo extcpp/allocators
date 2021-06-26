@@ -1,7 +1,7 @@
 #ifndef EXT_ALLOCATORS_STANDARD_HEADER
 #define EXT_ALLOCATORS_STANDARD_HEADER
 
-#include "detail_block.hpp"
+#include "memory_block.hpp"
 #include <cassert>
 #include <cstdlib>
 
@@ -13,6 +13,7 @@ class standard_allocator {
         return size;
     }
 
+    // can not tell - unfortunately
     bool owns(memory_block) const noexcept {
         return true;
     }
